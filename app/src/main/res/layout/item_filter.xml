@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="2dp"
+    android:layout_marginStart="2dp"
+    android:layout_marginTop="5dp">
+
+    <TextView
+        android:id="@+id/filter_chapter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="16dp"
+        android:maxLines="1"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"
+        android:text="TextView"
+        android:textColor="@color/colorText"
+        android:textSize="16sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:background="@drawable/item_border"
+        android:paddingBottom="5dp"
+        android:paddingEnd="8dp"
+        android:paddingStart="8dp"
+        android:paddingTop="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filter_chapter">
+
+        <ImageView
+            android:id="@+id/filter_pic"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:padding="1dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_dashboard_black_24dp" />
+
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/filter_title"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="Title"
+            android:textAlignment="viewStart"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            android:textColor="@color/colorText"
+            android:textSize="16dp"
+            app:layout_constraintEnd_toStartOf="@+id/filter_btn0"
+            app:layout_constraintLeft_toRightOf="@+id/filter_pic"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="Deprecated,RtlHardcoded,SpUsage" />
+
+        <TextView
+            android:id="@+id/filter_info"
+            android:layout_width="0dp"
+            android:layout_height="18dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="Artist"
+            android:textAlignment="viewStart"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            android:textColor="@color/colorText"
+            android:textSize="14dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/filter_btn0"
+            app:layout_constraintLeft_toRightOf="@+id/filter_pic"
+            app:layout_constraintTop_toBottomOf="@+id/filter_title"
+            app:layout_constraintVertical_bias="1.0" />
+
+        <ImageButton
+            android:id="@+id/filter_btn0"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/filter_btn1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/add_playing" />
+
+        <ImageButton
+            android:id="@+id/filter_btn1"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/menu_button" />
+    </android.support.constraint.ConstraintLayout>
+
+
+</android.support.constraint.ConstraintLayout>

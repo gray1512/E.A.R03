@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">E.A.R03</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="title_songs">Songs</string>
+    <string name="title_album">Album</string>
+    <string name="title_playlist">Playlist</string>
+
+    <string name="title_activity_launcher">LauncherActivity</string>
+    <string name="title_activity_songs_filter">SongsFilterActivity</string>
+</resources>
