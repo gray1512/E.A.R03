@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import theboltentertainment.ear03.MainActivity;
 import theboltentertainment.ear03.R;
+import theboltentertainment.ear03.Views.RecyclerItemClickListener;
+import theboltentertainment.ear03.Views.SongsRecyclerView;
 
 
 public class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -42,7 +44,7 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     }
 
     public static class SongsFragment extends Fragment {
-        private RecyclerView recyclerView;
+        private SongsRecyclerView recyclerView;
         private SongsViewAdapter adapter;
         private Context c;
 
@@ -57,46 +59,20 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
         public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_songs, container, false);
 
-            recyclerView = (RecyclerView) v.findViewById(R.id.songs_view);
+            recyclerView = (SongsRecyclerView) v.findViewById(R.id.songs_view);
             TextView noti = (TextView) v.findViewById(R.id.songs_noti);
 
             if (MainActivity.audioList.size() > 0) {
                 noti.setVisibility(View.GONE);
-                LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-                recyclerView.setLayoutManager(layoutManager);
-                recyclerView.setHasFixedSize(true);
-
                 adapter = new SongsViewAdapter(MainActivity.audioList);
                 adapter.setHasStableIds(true);
+
+                recyclerView.init();
                 recyclerView.setAdapter(adapter);
-
-                recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(c, recyclerView,
-                        new RecyclerItemClickListener.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(View view, int position) {
-                                if ((view.findViewById(R.id.filter_add_playing)).isPressed()) {
-                                    Toast.makeText(c, "Add Playing List " + MainActivity.audioList.get(position).getTitle(),
-                                            Toast.LENGTH_SHORT).show();
-                                    return;
-                                } else if (view.findViewById(R.id.filter_menu_button).isPressed()) {
-                                    Toast.makeText(c, "Display options menu for " + MainActivity.audioList.get(position).getTitle(),
-                                            Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-                                Toast.makeText(c, MainActivity.audioList.get(position).getTitle(), Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onItemLongClick(View view, int position) {
-
-                            }
-                        }));
             } else {
                 recyclerView.setVisibility(View.INVISIBLE);
                 noti.setVisibility(View.VISIBLE);
             }
-
-
             return v;
         }
 

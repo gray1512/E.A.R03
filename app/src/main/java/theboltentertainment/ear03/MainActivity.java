@@ -23,6 +23,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.SQLDatabase;
@@ -30,6 +34,7 @@ import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Classes.ViewPagerAdapter;
 import theboltentertainment.ear03.Objects.Playlist;
+import theboltentertainment.ear03.Services.AudioPlayer;
 
 public class MainActivity extends AppCompatActivity {
     public static final String ACTIVITY_FLAG = "Flag for FilterActivity";

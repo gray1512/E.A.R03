@@ -1,4 +1,4 @@
-package theboltentertainment.ear03.Classes;
+package theboltentertainment.ear03.Views;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

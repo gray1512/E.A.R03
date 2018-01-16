@@ -17,7 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <android.support.v7.widget.RecyclerView
+    <theboltentertainment.ear03.Views.SongsRecyclerView
         android:id="@+id/songs_view"
         android:layout_width="0dp"
         android:layout_height="0dp"

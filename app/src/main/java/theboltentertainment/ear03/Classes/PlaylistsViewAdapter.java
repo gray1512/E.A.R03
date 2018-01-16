@@ -107,67 +107,72 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
             cancel.setVisibility(View.INVISIBLE);
 
             play.setText("");
-            playHeight = play.getMeasuredHeight();
-            expand = new PlayButton.ScaleWidthAnimator(play, playHeight, playWidth, 200);
-            expand.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
+            playHeight = ( playHeight==0 ) ? play.getMeasuredHeight() : playHeight;
+            if (expand == null) {
+                expand = new PlayButton.ScaleWidthAnimator(play, playHeight, playWidth, 200);
 
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    play.setText("Play");
-                    cancel.setVisibility(View.GONE);
+                expand.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
 
-                    play.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            expandAnimation();
-                        }
-                    });
-                }
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        play.setText("Play");
+                        cancel.setVisibility(View.GONE);
 
-                @Override
-                public void onAnimationRepeat(Animation animation) {
+                        play.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                expandAnimation();
+                            }
+                        });
+                    }
 
-                }
-            });
-            collapse = new PlayButton.ScaleWidthAnimator(play, playWidth, playHeight, 200);
-            collapse.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) { }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
 
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    play.setVisibility(View.GONE);
-                    cancel.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+            if (collapse == null) {
+                collapse = new PlayButton.ScaleWidthAnimator(play, playWidth, playHeight, 200);
+                collapse.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) { }
 
-                    shuffle.setVisibility(View.VISIBLE);
-                    flow.setVisibility(View.VISIBLE);
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        play.setVisibility(View.GONE);
+                        cancel.setVisibility(View.VISIBLE);
 
-                    floatFlow = new FlingAnimation(flow, DynamicAnimation.X)
-                            .setMinValue(flow.getX() - playWidth/2).setMaxValue(flow.getX())
-                            .setStartVelocity(-500f).setFriction(1.0f);
-                    floatShuffle = new FlingAnimation(shuffle, DynamicAnimation.X)
-                            .setMinValue(shuffle.getX()).setMaxValue(shuffle.getX() + playWidth/2)
-                            .setStartVelocity(500f).setFriction(1.0f);
+                        shuffle.setVisibility(View.VISIBLE);
+                        flow.setVisibility(View.VISIBLE);
 
-                    floatShuffle.start();
-                    floatFlow.start();
+                        floatFlow = new FlingAnimation(flow, DynamicAnimation.X)
+                                .setMinValue(flow.getX() - playWidth/2).setMaxValue(flow.getX())
+                                .setStartVelocity(-500f).setFriction(1.0f);
+                        floatShuffle = new FlingAnimation(shuffle, DynamicAnimation.X)
+                                .setMinValue(shuffle.getX()).setMaxValue(shuffle.getX() + playWidth/2)
+                                .setStartVelocity(500f).setFriction(1.0f);
 
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            collapseAnimation();
-                        }
-                    });
-                }
+                        floatShuffle.start();
+                        floatFlow.start();
 
-                @Override
-                public void onAnimationRepeat(Animation animation) {
+                        cancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                collapseAnimation();
+                            }
+                        });
+                    }
 
-                }
-            });
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+            }
             play.startAnimation(collapse);
         }
 
@@ -195,8 +200,6 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                             play.startAnimation(expand);
                         }
                     }).start();
-
-
         }
     }
 }
