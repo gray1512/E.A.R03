@@ -32,13 +32,10 @@ public class PlayingAudioActivity extends AppCompatActivity {
     public static ArrayList<Audio> playingList;
     public static int currentTrack;
 
-    private ServiceConnection serviceConnection;
-    private boolean serviceBound;
+    private ViewPager viewPager;
 
-    private Thread bindPlayerService =  new Thread(new Runnable() {
-        @Override
-        public void run() {
-            serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
+    private boolean serviceBound;
+    private ServiceConnection serviceConnection =  new ServiceConnection() { //Binding this Client to the AudioPlayer Service
                 @Override
                 public void onServiceConnected(ComponentName name, IBinder service) {
                     // We've bound to LocalService, cast the IBinder and get LocalService instance
@@ -48,10 +45,11 @@ public class PlayingAudioActivity extends AppCompatActivity {
                     playingList = audioPlayer.getPlayingList();
                     currentTrack = audioPlayer.getCurrentTrack();
 
-                    new Handler().post(new Runnable() {
+                    handler.post(new Runnable() {
                         @Override
                         public void run() {
                             setupViews();
+                            PlayingViewPagerAdapter.PlayingListFragment.notifyDataset();
                         }
                     });
                 }
@@ -60,19 +58,30 @@ public class PlayingAudioActivity extends AppCompatActivity {
                 public void onServiceDisconnected(ComponentName name) {
                     serviceBound = false;
                 }
-            };
+    };
 
-            Intent playerIntent = new Intent(getBaseContext(), PlayerService.class);
-            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-        }
-    });
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playing_audio);
 
-        bindPlayerService.start();
+        // TODO: maybe use intent??? may be not cause prob not in the intent, try another kind of listviews
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Intent playerIntent = new Intent(getBaseContext(), PlayerService.class);
+                bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+            }
+        }).start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(serviceConnection);
     }
 
     private void setupViews() {
@@ -81,6 +90,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.playing_viewpager);
         viewPager.setAdapter(new PlayingViewPagerAdapter(getSupportFragmentManager()));
+        viewPager.setCurrentItem(1, true);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
@@ -107,8 +117,8 @@ public class PlayingAudioActivity extends AppCompatActivity {
         });
 
         ImageButton playBtn = (ImageButton) findViewById(R.id.playing_playbtn);
-        if (audioPlayer.getPlayWhenReady()) playBtn.setImageResource(R.drawable.play);
-        else playBtn.setImageResource(R.drawable.pause);
+        if (audioPlayer.getPlayWhenReady()) playBtn.setImageResource(R.drawable.pause);
+        else playBtn.setImageResource(R.drawable.play);
 
         ImageButton shuffleBtn = (ImageButton) findViewById(R.id.playing_shuffle);
         if (audioPlayer.getShuffleModeEnabled()) shuffleBtn.setImageResource(R.drawable.shuffle);
@@ -122,11 +132,11 @@ public class PlayingAudioActivity extends AppCompatActivity {
 
     public void play (View v) {
         if (audioPlayer.getPlayWhenReady()) {
-            ((ImageButton) v).setImageResource(R.drawable.pause);
+            ((ImageButton) v).setImageResource(R.drawable.play);
             Intent i = new Intent(AudioPlayer.ACTION_PAUSE);
             sendBroadcast(i);
         } else {
-            ((ImageButton) v).setImageResource(R.drawable.play);
+            ((ImageButton) v).setImageResource(R.drawable.pause);
             Intent i = new Intent(AudioPlayer.ACTION_PLAY);
             sendBroadcast(i);
         }

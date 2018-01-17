@@ -60,7 +60,6 @@ public class SongsRecyclerView extends RecyclerView {
                                     Toast.LENGTH_SHORT).show();
                             return;
                         }
-                        Toast.makeText(c, MainActivity.audioList.get(position).getTitle(), Toast.LENGTH_SHORT).show();
                         playAudios(position);
                     }
                     @Override
