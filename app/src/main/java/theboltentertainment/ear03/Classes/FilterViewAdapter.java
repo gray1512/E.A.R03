@@ -28,6 +28,10 @@ public class FilterViewAdapter extends RecyclerView.Adapter<FilterViewAdapter.Vi
     private DataFilter filter;
     private RecyclerView recyclerView;
 
+    public ArrayList<Audio> getAudioList() {
+        return this.audioList;
+    }
+
 
     public FilterViewAdapter (Context c, ArrayList<Audio> audioList,
                               ArrayList <Album> albumList, ArrayList<Playlist> playlists, boolean checkbox) {
@@ -134,10 +138,6 @@ public class FilterViewAdapter extends RecyclerView.Adapter<FilterViewAdapter.Vi
         }
         return filter;
     }
-
-    /*void resetFilter() {
-        filter = null;
-    }*/
 
     private class DataFilter extends Filter {
         private ArrayList<Audio> backupDataAudio = new ArrayList<>();

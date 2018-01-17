@@ -23,8 +23,8 @@
             android:name=".LauncherActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_launcher"
-            android:theme="@style/FullscreenTheme"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:theme="@style/FullscreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -37,12 +37,17 @@
             android:label="@string/title_activity_main" />
         <activity
             android:name=".SongsFilterActivity"
-            android:label="@string/title_activity_songs_filter"
-            android:configChanges="keyboardHidden|orientation" >
+            android:configChanges="keyboardHidden|orientation"
+            android:label="@string/title_activity_songs_filter">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+        <activity android:name=".PlayingAudioActivity"></activity>
+
+        <service
+            android:name=".Services.PlayerService"
+            android:enabled="true" />
     </application>
 
 </manifest>

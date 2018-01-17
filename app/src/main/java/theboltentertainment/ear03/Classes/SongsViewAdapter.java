@@ -16,9 +16,8 @@ import theboltentertainment.ear03.R;
 
 
 public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.ViewHolder> {
-
-
     private ArrayList<Audio> audioList;
+    private boolean noAddBtn = false;
     private Context c;
 
     public ArrayList<Audio> getAudioList() {
@@ -43,6 +42,10 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
     SongsViewAdapter(ArrayList<Audio> list) {
         this.audioList = list;
     }
+    SongsViewAdapter(ArrayList<Audio> list, boolean noAddBtn) {
+        this.audioList = list;
+        this.noAddBtn = noAddBtn;
+    }
 
     @Override
     public SongsViewAdapter.ViewHolder onCreateViewHolder(final ViewGroup parent, int viewT) {
@@ -59,6 +62,8 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
 
         viewHolder.title.setText(title);
         viewHolder.artist.setText(artist);
+
+        if (noAddBtn) viewHolder.add.setVisibility(View.GONE);
 
         viewHolder.setIsRecyclable(false);
     }

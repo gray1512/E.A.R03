@@ -2,6 +2,7 @@ package theboltentertainment.ear03;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -18,16 +19,23 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.FilterViewAdapter;
+import theboltentertainment.ear03.Classes.SongsViewAdapter;
+import theboltentertainment.ear03.Services.AudioPlayer;
+import theboltentertainment.ear03.Services.PlayerService;
 import theboltentertainment.ear03.Views.RecyclerItemClickListener;
 import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Objects.Playlist;
 
+import static theboltentertainment.ear03.MainActivity.serviceConnection;
+import static theboltentertainment.ear03.Services.AudioPlayer.PLAYING_LIST;
+
 public class SongsFilterActivity extends AppCompatActivity {
     private String ACTIVITY;
     private FilterViewAdapter adapter;
     private TextView name;
+    private RecyclerView recyclerView;
 
     private ArrayList<Audio> selectedList = new ArrayList<>();
     private ArrayList<Audio> audioList;
@@ -47,7 +55,7 @@ public class SongsFilterActivity extends AppCompatActivity {
         ArrayList<Playlist> playlists = (ArrayList<Playlist>) getIntent().getSerializableExtra(MainActivity.PLAYLISTS);
         ACTIVITY = getIntent().getStringExtra(MainActivity.ACTIVITY_FLAG);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.filter_view);
+        recyclerView = (RecyclerView) findViewById(R.id.filter_view);
         name = (TextView) findViewById(R.id.filter_name);
         FloatingActionButton checked = (FloatingActionButton) findViewById(R.id.checked);
 
@@ -75,7 +83,9 @@ public class SongsFilterActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         if (ACTIVITY.equals(MainActivity.SEARCH_ACTIVITY)) {
-                            // Todo play music
+                            // play music
+                            playAudios(position);
+
                         } else if (ACTIVITY.equals(MainActivity.CREATE_PLAYLIST_ACTIVITY)) {
                             ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.ic_info_black_24dp);
                             selectedList.add(audioList.get(position));
@@ -146,6 +156,23 @@ public class SongsFilterActivity extends AppCompatActivity {
             Toast.makeText(getBaseContext(), "Do you forget playlist name?", Toast.LENGTH_LONG).show();
             // blink animation in name edit field
         }
+    }
 
+    private void playAudios (int index) {
+        // TODO pass list and index thorugh intent to service
+        if (!MainActivity.serviceBound) {
+            Intent playerIntent = new Intent(this, PlayerService.class);
+            playerIntent.putExtra(PLAYING_LIST, ((FilterViewAdapter) recyclerView.getAdapter()).getAudioList());
+            playerIntent.putExtra(AudioPlayer.PLAYING_TRACK, index);
+            startService(playerIntent);
+            bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        } else {
+            //Service is active
+            //Send a broadcast to the service -> PLAY_NEW_AUDIO
+            Intent broadcastIntent = new Intent(AudioPlayer.ACTION_RESET_PLAYER);
+            broadcastIntent.putExtra(AudioPlayer.PLAYING_TRACK, index);
+            broadcastIntent.putExtra(PLAYING_LIST, ((FilterViewAdapter) recyclerView.getAdapter()).getAudioList());
+            sendBroadcast(broadcastIntent);
+        }
     }
 }

@@ -1,40 +1,33 @@
 package theboltentertainment.ear03;
 
-import android.app.SearchManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.animation.DynamicAnimation;
-import android.support.animation.FlingAnimation;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintSet;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
-import theboltentertainment.ear03.Classes.ViewPagerAdapter;
+import theboltentertainment.ear03.Classes.MainViewPagerAdapter;
 import theboltentertainment.ear03.Objects.Playlist;
 import theboltentertainment.ear03.Services.AudioPlayer;
+import theboltentertainment.ear03.Services.PlayerService;
 
 public class MainActivity extends AppCompatActivity {
     public static final String ACTIVITY_FLAG = "Flag for FilterActivity";
@@ -57,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton playlistShuffle;
     private ImageButton playlistFlow;
 
+    private MenuItem playingItem;
+
+    public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
+    public static ServiceConnection serviceConnection;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -79,16 +76,48 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
+    private Thread bindPlayerService =  new Thread(new Runnable() {
+        @Override
+        public void run() {
+            serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    // We've bound to LocalService, cast the IBinder and get LocalService instance
+                    PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
+                    //player = binder.getService();
+                    serviceBound = true;
+                }
+
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    serviceBound = false;
+                }
+            };
+        }
+    });
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("Message", "Received");
+            if (!playingItem.isVisible()) playingItem.setVisible(true);
+            boolean stt = intent.getBooleanExtra(AudioPlayer.PLAYING_STATUS, false);
+            // TODO set different icon with animation depend on stt value
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        bindPlayerService.start();
+
         audioList = (ArrayList<Audio>) getIntent().getSerializableExtra(LauncherActivity.AUDIO_LIST);
         extractAlbumNPlaylist();
 
         viewPager = (ViewPager) findViewById(R.id.viewPager);
-        viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
+        viewPager.setAdapter(new MainViewPagerAdapter(getSupportFragmentManager()));
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
@@ -104,9 +133,10 @@ public class MainActivity extends AppCompatActivity {
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         navigation.setSelectedItemId(R.id.navigation_songs);
-
         playlistShuffle = (ImageButton) findViewById(R.id.playlist_shuffle);
         playlistFlow    = (ImageButton) findViewById(R.id.playlist_flow);
+
+        registerReceiver(mMessageReceiver, new IntentFilter(AudioPlayer.CHANGE_PLAYING_STATUS));
     }
 
     @Override
@@ -119,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
                     db.close();
 
                     extractAlbumNPlaylist();
-                    viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
+                    viewPager.setAdapter(new MainViewPagerAdapter(getSupportFragmentManager()));
                     viewPager.setCurrentItem(2);
                 break;
         }
@@ -129,19 +159,28 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main_actionbar, menu);
+        playingItem = menu.getItem(0);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.search:
+            case R.id.search: {
                 Intent intent = new Intent(getBaseContext(), SongsFilterActivity.class);
                 intent.putExtra(ACTIVITY_FLAG, SEARCH_ACTIVITY);
                 intent.putExtra(AUDIOLIST, audioList);
                 intent.putExtra(ALBUMLIST, albumList);
                 intent.putExtra(PLAYLISTS, playlists);
                 startActivity(intent);
+                break;
+            }
+
+            case R.id.playing: {
+                Intent intent = new Intent(getBaseContext(), PlayingAudioActivity.class);
+                startActivity(intent);
+                break;
+            }
         }
         return true;
     }

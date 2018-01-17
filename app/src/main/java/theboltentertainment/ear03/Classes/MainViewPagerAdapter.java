@@ -23,8 +23,8 @@ import theboltentertainment.ear03.Views.RecyclerItemClickListener;
 import theboltentertainment.ear03.Views.SongsRecyclerView;
 
 
-public class ViewPagerAdapter extends FragmentPagerAdapter {
-    public ViewPagerAdapter(FragmentManager fm) {
+public class MainViewPagerAdapter extends FragmentPagerAdapter {
+    public MainViewPagerAdapter(FragmentManager fm) {
         super(fm);
     }
 
@@ -67,7 +67,7 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
                 adapter = new SongsViewAdapter(MainActivity.audioList);
                 adapter.setHasStableIds(true);
 
-                recyclerView.init();
+                recyclerView.init(false);
                 recyclerView.setAdapter(adapter);
             } else {
                 recyclerView.setVisibility(View.INVISIBLE);
@@ -146,7 +146,6 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
             View v = inflater.inflate(R.layout.fragment_playlist, container, false);
             RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.playlists_view);
             TextView noti = (TextView) v.findViewById(R.id.playlists_noti);
-            FloatingActionButton newBtn = (FloatingActionButton) v.findViewById(R.id.playlists_new);
 
             if (MainActivity.playlists.size() > 0) {
                 noti.setVisibility(View.GONE);
