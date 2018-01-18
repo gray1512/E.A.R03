@@ -160,13 +160,14 @@ public class LauncherActivity extends AppCompatActivity {
             title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
             artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
 
+            length = Integer.parseInt(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+
             albumTitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
             if (albumTitle != null && !albumTitle.equals("")) {
                 album = new Album(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM),
                         mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST));
                 album.setCover(getCoverPath(albumTitle, mmr.getEmbeddedPicture()));
             }
-            length = Integer.parseInt(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
 
         } catch (Exception e) {
             Log.e("Error", e.toString());

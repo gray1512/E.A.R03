@@ -10,7 +10,7 @@
     <android.support.constraint.ConstraintLayout
         android:id="@+id/tabs_icon"
         android:layout_width="50dp"
-        android:layout_height="wrap_content"
+        android:layout_height="12dp"
         android:background="@color/colorAccent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,7 +20,7 @@
             android:id="@+id/tab0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/tab2_icon"
+            android:src="@drawable/tab_icon"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -29,7 +29,7 @@
             android:id="@+id/tab1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/tab_icon"
+            android:src="@drawable/tab3_icon"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

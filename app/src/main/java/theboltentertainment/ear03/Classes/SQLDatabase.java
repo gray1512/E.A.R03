@@ -118,25 +118,44 @@ public class SQLDatabase extends SQLiteOpenHelper {
         db = this.getWritableDatabase();
         db.update(AUDIO_TABLE_NAME, contentValues, "id = ?", new String[] { String.valueOf(id) } );
         return true;
-    }
+    }*/
 
-    boolean updateLyric(String data, String title, String album, String artist, String length, String playlist, String lyric) {
+    boolean updateLyric(Audio a) {
+        String path = a.getData();
+        String title = a.getTitle();
+        String artist = a.getArtist();
+        Album album = a.getAlbum();
+        String cover;
+        int length = a.getLengthInMilSecs();
+        String playlists = a.getStringPlaylist();
+        String lyric = a.getLyric();
+
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(AUDIO_COLUMN_DATA, data);
+        contentValues.put(AUDIO_COLUMN_DATA, path);
         contentValues.put(AUDIO_COLUMN_TITLE, title);
         contentValues.put(AUDIO_COLUMN_ARTIST, artist);
-        contentValues.put(AUDIO_COLUMN_ALBUM, album);
+        if (album != null) {
+            contentValues.put(AUDIO_COLUMN_ALBUM, album.getName());
+            contentValues.put(AUDIO_COLUMN_ALBUMARTIST, album.getArtist());
+            cover = album.getCover();
+            if (cover == null) contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+            else contentValues.put((AUDIO_COLUMN_ALBUMCOVER), cover);
+        } else {
+            contentValues.putNull(AUDIO_COLUMN_ALBUM);
+            contentValues.putNull(AUDIO_COLUMN_ALBUMARTIST);
+            contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+        }
         contentValues.put(AUDIO_COLUMN_LENGTH, length);
-        contentValues.put(AUDIO_COLUMN_PLAYLIST, playlist);
+        contentValues.put(AUDIO_COLUMN_PLAYLIST, playlists);
         contentValues.put(AUDIO_COLUMN_LYRIC, lyric);
 
         Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
         res.moveToFirst();
         int id = -1;
         while(!res.isAfterLast()){
-            String path = res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA));
-            if (path != null && path.equals(data)) {
+            String data = res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA));
+            if (data != null && data.equals(path)) {
                 id = res.getInt(res.getColumnIndex(AUDIO_COLUMN_ID));
                 contentValues.put(AUDIO_COLUMN_ID, id);
             }
@@ -149,7 +168,7 @@ public class SQLDatabase extends SQLiteOpenHelper {
         return true;
     }
 
-    Integer deleteAudio(String path) {
+    /*Integer deleteAudio(String path) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
 

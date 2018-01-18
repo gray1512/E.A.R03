@@ -78,7 +78,6 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
         @Override
         public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
-            progressBar = (ProgressBar) view.findViewById(R.id.playing_list_progressbar);
             recyclerView = (SongsRecyclerView) view.findViewById(R.id.playing_list);
 
             adapter = new SongsViewAdapter(PlayingAudioActivity.playingList, true);
@@ -94,11 +93,6 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
 
         public static PlayingListFragment newInstance() {
             return new PlayingListFragment();
-        }
-
-        public static void notifyDataset() {
-            progressBar.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -147,12 +141,12 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
                     }).start();
                 } else {
                     lyrProg.setVisibility(View.GONE);
-                    lyric.setVisibility(View.VISIBLE);
+                    switcher.setVisibility(View.VISIBLE);
                     lyric.setText("No internet connection");
                 }
             } else {
                 lyrProg.setVisibility(View.GONE);
-                lyric.setVisibility(View.VISIBLE);
+                switcher.setVisibility(View.VISIBLE);
                 lyric.setText(a.getLyric());
             }
 
@@ -260,8 +254,9 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
                                             final String finalLyr = lyr;
                                             if (!lyr.equals("No lyric found")) {
                                                 a.setLyric(lyr);
-                                                /*dbHelper.updateLyric(a.getData(), a.getTitle(), a.getAlbum(),
-                                                        a.getArtist(), a.getLength(), a.getPlaylist(), lyr);*/
+                                                SQLDatabase db = new SQLDatabase(c);
+                                                db.updateLyric(a);
+                                                db.close();
                                             }
                                             handler.post(new Runnable() {
                                                 @Override

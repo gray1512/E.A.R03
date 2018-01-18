@@ -52,7 +52,6 @@ public class Album implements Serializable {
 
     public void setCover(@Nullable String cover) {
         this.cover = cover;
-        //this.cover = byteToBitmap(bytecover);
     }
 
     public Album(String name, String artist) {

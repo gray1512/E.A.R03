@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
     public static ServiceConnection serviceConnection;
+    private AudioPlayer player;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onServiceConnected(ComponentName name, IBinder service) {
                     // We've bound to LocalService, cast the IBinder and get LocalService instance
                     PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
-                    //player = binder.getService();
+                    player = binder.getService().getAudioPlayer();
                     serviceBound = true;
                 }
 
@@ -190,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.playing: {
                 Intent intent = new Intent(getBaseContext(), PlayingAudioActivity.class);
+                intent.putExtra(AudioPlayer.PLAYING_LIST, player.getPlayingList());
+                intent.putExtra(AudioPlayer.PLAYING_TRACK, player.getCurrentTrack());
                 startActivity(intent);
                 break;
             }

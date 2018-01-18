@@ -54,10 +54,6 @@ public class Audio implements Serializable {
         return album;
     }
 
-    /*public Bitmap getAlbumCover() {
-        return album.getCover();
-    }*/
-
     public String getArtist() {
         return artist;
     }

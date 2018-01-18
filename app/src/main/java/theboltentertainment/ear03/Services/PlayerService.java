@@ -30,7 +30,7 @@ import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.Objects.Audio;
 
 public class PlayerService extends Service implements AudioManager.OnAudioFocusChangeListener {
-    private AudioPlayer audioPlayer;
+    private static AudioPlayer audioPlayer;
 
     private final IBinder iBinder = new LocalBinder();
 
@@ -44,8 +44,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
-    public AudioPlayer getAudioPlayer () {
-        return this.audioPlayer;
+    public static AudioPlayer getAudioPlayer () {
+        return audioPlayer;
     }
 
     @Override
@@ -151,6 +151,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 break;
         }
     }
+
+
 
     private boolean requestAudioFocus() {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
