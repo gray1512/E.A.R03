@@ -51,7 +51,8 @@ public class Album implements Serializable {
     }
 
     public void setCover(@Nullable String cover) {
-        this.cover = cover;
+        if (cover != null && !cover.equals("")) this.cover = cover;
+        else this.cover = null;
     }
 
     public Album(String name, String artist) {

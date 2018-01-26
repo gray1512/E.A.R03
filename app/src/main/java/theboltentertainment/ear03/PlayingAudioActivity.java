@@ -1,8 +1,10 @@
 package theboltentertainment.ear03;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,10 +16,15 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -35,7 +42,6 @@ import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Services.AudioPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
 
-import static theboltentertainment.ear03.MainActivity.serviceConnection;
 import static theboltentertainment.ear03.Services.AudioPlayer.PLAYING_LIST;
 
 public class PlayingAudioActivity extends AppCompatActivity {
@@ -46,29 +52,110 @@ public class PlayingAudioActivity extends AppCompatActivity {
     private TextView current;
     private TextView duration;
     private long dura;
+    private boolean tracking = false;
 
+    private ViewPager viewPager;
     private ImageView albumCover;
+    private TextView title;
+    private TextView artist;
+
+    public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
+    private ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
+            player = binder.getService().getAudioPlayer();
+            serviceBound = true;
+
+            playingList = player.getPlayingList();
+            currentTrack = player.getCurrentTrack();
+            setupViews();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
+    private AudioPlayer player;
 
     private Handler handler = new Handler();
+
+    private Thread bindPlayerService =  new Thread(new Runnable() {
+        @Override
+        public void run() {
+            bindService(new Intent(getBaseContext(), PlayerService.class),
+                    serviceConnection, Context.BIND_AUTO_CREATE);
+        }
+    });
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("Message", "Received");
+            // TODO update view when receve Change Track mess
+            updateViews();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playing_audio);
 
-        // TODO: get data from Intent, get directly from service require too much memory
-        playingList = (ArrayList<Audio>) getIntent().getSerializableExtra(AudioPlayer.PLAYING_LIST);
-        currentTrack = getIntent().getIntExtra(AudioPlayer.PLAYING_TRACK, 0);
+        bindPlayerService.start();
+        registerReceiver(mMessageReceiver, new IntentFilter(AudioPlayer.CHANGE_TRACK_DATA));
+    }
 
-        setupViews();
-        setSeekBar();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(serviceConnection);
+        unregisterReceiver(mMessageReceiver);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.playing_actionbar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home: {
+                this.finish();
+                break;
+            }
+            case R.id.fullscreen: {
+                Intent i = new Intent(this, FullscreenActivity.class);
+                startActivity(i);
+                break;
+            }
+        }
+
+        return true;
     }
 
     private void setupViews() {
+        LayoutInflater inflator = (LayoutInflater) this .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflator.inflate(R.layout.playing_actionbar, null);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowCustomEnabled(true);
+        getSupportActionBar().setCustomView(v, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        title = (TextView) v.findViewById(R.id.playing_title);
+        artist = (TextView) v.findViewById(R.id.playing_artist);
+        title.setText(playingList.get(currentTrack).getTitle());
+        artist.setText(playingList.get(currentTrack).getArtist());
+
         final ImageView tab0 = (ImageView) findViewById(R.id.tab0);
         final ImageView tab1 = (ImageView) findViewById(R.id.tab1);
 
-        ViewPager viewPager = (ViewPager) findViewById(R.id.playing_viewpager);
+        viewPager = (ViewPager) findViewById(R.id.playing_viewpager);
         viewPager.setAdapter(new PlayingViewPagerAdapter(getSupportFragmentManager()));
         viewPager.setCurrentItem(1, true);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -97,16 +184,16 @@ public class PlayingAudioActivity extends AppCompatActivity {
         });
 
         ImageButton playBtn = (ImageButton) findViewById(R.id.playing_playbtn);
-        if (PlayerService.getAudioPlayer().getPlayWhenReady()) playBtn.setImageResource(R.drawable.pause);
+        if (player.getPlayWhenReady()) playBtn.setImageResource(R.drawable.pause);
         else playBtn.setImageResource(R.drawable.play);
 
         ImageButton shuffleBtn = (ImageButton) findViewById(R.id.playing_shuffle);
-        if (PlayerService.getAudioPlayer().getShuffleModeEnabled()) shuffleBtn.setImageResource(R.drawable.shuffle);
+        if (player.getShuffleModeEnabled()) shuffleBtn.setImageResource(R.drawable.shuffle);
         else shuffleBtn.setImageResource(R.drawable.shuffle_off);
 
         ImageButton repeatBtn = (ImageButton) findViewById(R.id.playing_repeat);
-        if (PlayerService.getAudioPlayer().getRepeatMode() == Player.REPEAT_MODE_ALL) repeatBtn.setImageResource(R.drawable.repeat);
-        else if (PlayerService.getAudioPlayer().getRepeatMode() == Player.REPEAT_MODE_ONE) repeatBtn.setImageResource(R.drawable.replay);
+        if (player.getRepeatMode() == AudioPlayer.REPEAT_ALL) repeatBtn.setImageResource(R.drawable.repeat);
+        else if (player.getRepeatMode() == AudioPlayer.REPEAT_ONE) repeatBtn.setImageResource(R.drawable.replay);
         else repeatBtn.setImageResource(R.drawable.play_once);
 
         albumCover = (ImageView) findViewById(R.id.playing_album);
@@ -117,6 +204,21 @@ public class PlayingAudioActivity extends AppCompatActivity {
         seekBar = (SeekBar) findViewById(R.id.playing_seekbar);
         current = (TextView) findViewById(R.id.playing_timer);
         duration = (TextView) findViewById(R.id.playing_duration);
+        setSeekBar();
+    }
+
+    private synchronized void updateViews() {
+        playingList = player.getPlayingList();
+        currentTrack = player.getCurrentTrack();
+        Audio a = playingList.get(currentTrack);
+
+        title.setText(a.getTitle());
+        artist.setText(a.getArtist());
+        if (a.getAlbum() != null) getCroppedBitmap(a.getAlbum().getCover());
+        else albumCover.setImageResource(R.drawable.ic_dashboard_black_24dp);
+
+        PlayingViewPagerAdapter.LyricFragment.notifyDataChange();
+        PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
     }
 
     private void setSeekBar() {
@@ -125,14 +227,40 @@ public class PlayingAudioActivity extends AppCompatActivity {
         seekBar.setMax((int) dura);
         duration.setText(toMinAndSec(dura));
 
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                tracking = true;
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                player.seekTo(seekBar.getProgress());
+                tracking = false;
+            }
+        });
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                long mCurrentPosition = PlayerService.getAudioPlayer().getCurrentPosition();
-                if(PlayerService.getAudioPlayer() != null){
-                    seekBar.setProgress((int) mCurrentPosition);
+                long dur = playingList.get(currentTrack).getLengthInMilSecs();
+                if (dur != dura) {
+                    seekBar.setMax((int) dur);
+                    duration.setText(toMinAndSec(dur));
                 }
-                current.setText(toMinAndSec(mCurrentPosition));
+                if (!tracking) {
+                    long mCurrentPosition = player.getCurrentPosition();
+                    if(player != null){
+                        seekBar.setProgress((int) mCurrentPosition);
+                    }
+                    current.setText(toMinAndSec(mCurrentPosition));
+                }
                 handler.postDelayed(this, 1000);
             }
         });
@@ -174,6 +302,13 @@ public class PlayingAudioActivity extends AppCompatActivity {
                     albumCover.setImageBitmap(output);
                 }
             });
+        } else {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    albumCover.setImageResource(R.drawable.ic_dashboard_black_24dp);
+                }
+            });
         }
     }
 
@@ -190,7 +325,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
     }
 
     public void play (View v) {
-        if (PlayerService.getAudioPlayer().getPlayWhenReady()) {
+        if (player.getPlayWhenReady()) {
             ((ImageButton) v).setImageResource(R.drawable.play);
             Intent i = new Intent(AudioPlayer.ACTION_PAUSE);
             sendBroadcast(i);
@@ -210,27 +345,27 @@ public class PlayingAudioActivity extends AppCompatActivity {
         sendBroadcast(previous);
     }
     public void setShuffle (View v) {
-        PlayerService.getAudioPlayer().setShuffleModeEnabled(!PlayerService.getAudioPlayer().getShuffleModeEnabled());
-        if (PlayerService.getAudioPlayer().getShuffleModeEnabled()) {
+        player.setShuffleModeEnabled(!player.getShuffleModeEnabled());
+        if (player.getShuffleModeEnabled()) {
             ((ImageButton) v).setImageResource(R.drawable.shuffle);
         } else {
             ((ImageButton) v).setImageResource(R.drawable.shuffle_off);
         }
     }
     public void setRepeat (View v) {
-        switch (PlayerService.getAudioPlayer().getRepeatMode()) {
-            case AudioPlayer.REPEAT_MODE_ALL: {
-                PlayerService.getAudioPlayer().setRepeatMode(Player.REPEAT_MODE_ONE);
+        switch (player.getRepeatMode()) {
+            case AudioPlayer.REPEAT_ALL: {
+                player.setRepeatMode(Player.REPEAT_MODE_ONE);
                 ((ImageButton) v).setImageResource(R.drawable.replay);
                 break;
             }
-            case AudioPlayer.REPEAT_MODE_ONE: {
-                PlayerService.getAudioPlayer().setRepeatMode(Player.REPEAT_MODE_OFF);
+            case AudioPlayer.REPEAT_ONE: {
+                player.setRepeatMode(Player.REPEAT_MODE_OFF);
                 ((ImageButton) v).setImageResource(R.drawable.play_once);
                 break;
             }
-            case AudioPlayer.REPEAT_MODE_OFF: {
-                PlayerService.getAudioPlayer().setRepeatMode(Player.REPEAT_MODE_ALL);
+            case AudioPlayer.REPEAT_OFF: {
+                player.setRepeatMode(Player.REPEAT_MODE_ALL);
                 ((ImageButton) v).setImageResource(R.drawable.repeat);
                 break;
             }

@@ -147,7 +147,7 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
             RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.playlists_view);
             TextView noti = (TextView) v.findViewById(R.id.playlists_noti);
 
-            if (MainActivity.playlists.size() > 0) {
+            if (MainActivity.playlists != null && MainActivity.playlists.size() > 0) {
                 noti.setVisibility(View.GONE);
                 LinearLayoutManager layoutManager = new LinearLayoutManager(c);
 

@@ -1,17 +1,22 @@
 package theboltentertainment.ear03.Services;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RenderersFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.audio.AudioRendererEventListener;
+import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
+import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -29,7 +34,7 @@ import java.util.Comparator;
 
 import theboltentertainment.ear03.Objects.Audio;
 
-public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListener {
+public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListener, AudioRendererEventListener {
     public static final String PLAYING_LIST = "Playing list";
     public static final String PLAYING_TRACK = "Playing track";
 
@@ -46,11 +51,20 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
     public static final boolean PLAY = true;
     public static final boolean PAUSE = false;
 
+    public static final String CHANGE_TRACK_DATA = "Change track";
+
     private Context context;
 
     private ArrayList<Audio> playingList;
     private int currentTrack = 0;
     private boolean playStatus = PLAY;
+    private int audioSession;
+
+    private int repeatMode;
+    public static final int REPEAT_ALL = 0;
+    public static final int REPEAT_ONE = 1;
+    public static final int REPEAT_OFF = 2;
+
 
     public ArrayList<Audio> getPlayingList() {
         return playingList;
@@ -63,66 +77,101 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
     private void setPlayStatus(boolean stt) {
         this.playStatus = stt;
     }
+    public int getAudioSessionId () { return this.audioSession; }
 
-    public AudioPlayer(RenderersFactory renderersFactory, TrackSelector trackSelector, LoadControl loadControl) {
+    public AudioPlayer(Context ctx, RenderersFactory renderersFactory, TrackSelector trackSelector, LoadControl loadControl) {
         super(renderersFactory, trackSelector, loadControl);
+        this.context = ctx;
+        addListener(this);
+        addAudioDebugListener(this);
+    }
+
+    @Override
+    public void onAudioEnabled(DecoderCounters counters) {
+
+    }
+
+    @Override
+    public void onAudioSessionId(int audioSessionId) {
+        //TODO Do something with your AudioSessionID here
+        this.audioSession = audioSessionId;
+    }
+
+    @Override
+    public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+
+    }
+
+    @Override
+    public void onAudioInputFormatChanged(Format format) {
+
+    }
+
+    @Override
+    public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+
+    }
+
+    @Override
+    public void onAudioDisabled(DecoderCounters counters) {
+
     }
 
     @Override
     public void onTimelineChanged(Timeline timeline, Object manifest) {
-        Log.i(TAG,"onTimelineChanged");
     }
 
     @Override
     public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-        Log.i(TAG,"onTracksChanged");
+        //seekTo(0);
     }
 
     @Override
     public void onLoadingChanged(boolean isLoading) {
-        Log.i(TAG,"onLoadingChanged");
+
     }
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        Log.i(TAG,"onPlayerStateChanged: playWhenReady = "+String.valueOf(playWhenReady)
-                +" playbackState = "+playbackState);
         switch (playbackState){
-            case AudioPlayer.STATE_ENDED:
-                Log.i(TAG,"Playback ended!");
-                if (getRepeatMode() != REPEAT_MODE_ONE) prepareAudio(playingList.get(getNextTrack()));
+            case Player.STATE_ENDED:
+                if (getRepeatMode() != REPEAT_ONE) prepareAudio(playingList.get(getNextTrack()));
                 else {
                     seekTo(0);
                 }
                 break;
-            case AudioPlayer.STATE_READY:
+            case Player.STATE_READY:
                 //Log.i(TAG,"AudioPlayer ready! pos: "+exoPlayer.getCurrentPosition() +" max: "+stringForTime((int)exoPlayer.getDuration()));
                 //setProgress();
                 break;
-            case AudioPlayer.STATE_BUFFERING:
-                Log.i(TAG,"Playback buffering!");
+            case Player.STATE_BUFFERING:
                 break;
-            case AudioPlayer.STATE_IDLE:
-                Log.i(TAG,"AudioPlayer idle!");
+            case Player.STATE_IDLE:
                 break;
         }
     }
 
+
     @Override
     public void setRepeatMode(int repeatMode) {
-        super.setRepeatMode(repeatMode);
+        this.repeatMode = repeatMode;
+    }
+
+    @Override
+    public int getRepeatMode() {
+        return this.repeatMode;
     }
 
     @Override
     public void onRepeatModeChanged(int repeatMode) {
         switch (repeatMode) {
-            case REPEAT_MODE_ALL: {
+            case REPEAT_ALL: {
                 break;
             }
-            case REPEAT_MODE_ONE: {
+            case REPEAT_ONE: {
                 break;
             }
-            case REPEAT_MODE_OFF: {
+            case REPEAT_OFF: {
                 break;
             }
         }
@@ -157,12 +206,11 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-        Log.i(TAG,"onPlaybackError: "+error.getMessage());
     }
 
     @Override
     public void onPositionDiscontinuity(int reason) {
-        Log.i(TAG,"onPositionDiscontinuity");
+
     }
 
     @Override
@@ -185,7 +233,7 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
         this.playingList = audios;
         this.currentTrack = pos;
         setShuffleModeEnabled(true);
-        setRepeatMode(Player.REPEAT_MODE_ALL);
+        setRepeatMode(REPEAT_ALL);
         prepareAudio(playingList.get(currentTrack));
     }
     public void play (int pos) {
@@ -223,8 +271,10 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
         };
         MediaSource audioSource = new ExtractorMediaSource(fileDataSource.getUri(),
                 factory, new DefaultExtractorsFactory(), null, null);
+
         prepare(audioSource);
         setPlayWhenReady(PLAY);
+        sendNoti();
     }
 
     private Uri getAudioUri(String filePath) {
@@ -232,7 +282,7 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
     }
 
     private int getNextTrack() {
-        if (getRepeatMode() == REPEAT_MODE_ALL) {
+        if (getRepeatMode() == REPEAT_ALL) {
             if (currentTrack < playingList.size() - 1) {
                 currentTrack++;
             } else {
@@ -245,7 +295,7 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
         return currentTrack;
     }
     private int getPreviousTrack() {
-        if (getRepeatMode() == REPEAT_MODE_ALL) {
+        if (getRepeatMode() == REPEAT_ALL) {
             if (currentTrack == 0) {
                 currentTrack = playingList.size() - 1;
             } else {
@@ -256,5 +306,10 @@ public class AudioPlayer extends SimpleExoPlayer implements ExoPlayer.EventListe
             else currentTrack--;
         }
         return currentTrack;
+    }
+
+    private void sendNoti() {
+        Intent broadcastIntent = new Intent(AudioPlayer.CHANGE_TRACK_DATA);
+        context.sendBroadcast(broadcastIntent);
     }
 }

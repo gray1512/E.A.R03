@@ -43,11 +43,18 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-        <activity android:name=".PlayingAudioActivity"></activity>
+        <activity android:name=".PlayingAudioActivity" />
 
         <service
             android:name=".Services.PlayerService"
             android:enabled="true" />
+
+        <activity
+            android:name=".FullscreenActivity"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen"
+            android:theme="@style/FullscreenTheme" />
     </application>
 
 </manifest>

@@ -44,7 +44,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
-    public static AudioPlayer getAudioPlayer () {
+    public AudioPlayer getAudioPlayer () {
         return audioPlayer;
     }
 
@@ -233,7 +233,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     }
 
     private void initAudioPlayer(ArrayList<Audio> audioList, int index) {
-        audioPlayer = new AudioPlayer(new DefaultRenderersFactory(getBaseContext()),
+        audioPlayer = new AudioPlayer(getBaseContext(), new DefaultRenderersFactory(getBaseContext()),
                 new DefaultTrackSelector(), new DefaultLoadControl());
         audioPlayer.play(audioList, index);
         changePlayingStatus(AudioPlayer.PLAY);

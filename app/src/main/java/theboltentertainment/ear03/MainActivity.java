@@ -52,9 +52,22 @@ public class MainActivity extends AppCompatActivity {
 
     private MenuItem playingItem;
 
+    private static AudioPlayer player;
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
-    public static ServiceConnection serviceConnection;
-    private AudioPlayer player;
+    public static ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
+            player = binder.getService().getAudioPlayer();
+            serviceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -77,26 +90,6 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
-    private Thread bindPlayerService =  new Thread(new Runnable() {
-        @Override
-        public void run() {
-            serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
-                @Override
-                public void onServiceConnected(ComponentName name, IBinder service) {
-                    // We've bound to LocalService, cast the IBinder and get LocalService instance
-                    PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
-                    player = binder.getService().getAudioPlayer();
-                    serviceBound = true;
-                }
-
-                @Override
-                public void onServiceDisconnected(ComponentName name) {
-                    serviceBound = false;
-                }
-            };
-        }
-    });
-
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -111,8 +104,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        bindPlayerService.start();
 
         audioList = (ArrayList<Audio>) getIntent().getSerializableExtra(LauncherActivity.AUDIO_LIST);
         extractAlbumNPlaylist();
@@ -208,9 +199,11 @@ public class MainActivity extends AppCompatActivity {
             if (a.getAlbum() != null && !albumList.contains(a.getAlbum())) {
                 albumList.add(a.getAlbum());
             }
-            for (Playlist p : a.getPlaylists()) {
-                if (!playlists.contains(p)) {
-                    playlists.add(p);
+            if (a.getPlaylists() != null) {
+                for (Playlist p : a.getPlaylists()) {
+                    if (!playlists.contains(p)) {
+                        playlists.add(p);
+                    }
                 }
             }
         }
@@ -228,10 +221,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getPlaylistsData() {
-        for (Playlist pl : playlists) {
-            for (Audio a : audioList) {
-                if (a.getPlaylists().contains(pl)) {
-                    pl.addSong(a);
+        if (playlists != null) {
+            for (Playlist pl : playlists) {
+                for (Audio a : audioList) {
+                    if (a.getPlaylists().contains(pl)) {
+                        pl.addSong(a);
+                    }
                 }
             }
         }

@@ -272,6 +272,8 @@ public class SQLDatabase extends SQLiteOpenHelper {
                         result.add(p);
                     }
                 }
+            } else if (playlists == "") {
+                result = null;
             } else {
                 Playlist p = new Playlist(playlists);
                 result.add(p);

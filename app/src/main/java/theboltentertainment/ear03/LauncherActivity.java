@@ -38,7 +38,7 @@ import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Objects.Playlist;
 
 public class LauncherActivity extends AppCompatActivity {
-    private final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1002;
+    private final int MY_PERMISSIONS_REQUEST= 1002;
     private SQLDatabase db;
     private MediaMetadataRetriever mmr;
 
@@ -81,8 +81,14 @@ public class LauncherActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(getBaseContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(LauncherActivity.this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                ActivityCompat.requestPermissions(LauncherActivity.this,
+                        new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                                android.Manifest.permission.READ_PHONE_STATE,
+                                android.Manifest.permission.MEDIA_CONTENT_CONTROL,
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                android.Manifest.permission.ACCESS_NETWORK_STATE,
+                                android.Manifest.permission.RECORD_AUDIO },
+                        MY_PERMISSIONS_REQUEST);
             } else {
                 welcomeThread.start();
             }
@@ -95,15 +101,21 @@ public class LauncherActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
+            case MY_PERMISSIONS_REQUEST: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     welcomeThread.start();
                 } else {
                     Toast.makeText(getBaseContext(), "EAR needs permission to work!", Toast.LENGTH_SHORT).show();
-                    ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
-                            MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    android.Manifest.permission.READ_PHONE_STATE,
+                                    android.Manifest.permission.MEDIA_CONTENT_CONTROL,
+                                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    android.Manifest.permission.ACCESS_NETWORK_STATE,
+                                    android.Manifest.permission.RECORD_AUDIO },
+                            MY_PERMISSIONS_REQUEST);
                 }
                 break;
             }

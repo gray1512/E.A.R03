@@ -94,26 +94,30 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
         public static PlayingListFragment newInstance() {
             return new PlayingListFragment();
         }
+
+        public static void notifyDataChange() {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     public static class LyricFragment extends Fragment {
-        private Context c;
+        private static Context c;
 
-        HostnameVerifier hostnameVerifier;
-        DefaultHttpClient client;
-        SchemeRegistry registry;
-        SSLSocketFactory socketFactory;
-        SingleClientConnManager mgr;
-        DefaultHttpClient httpClient;
-        ResponseHandler<String> resHandler;
+        static HostnameVerifier hostnameVerifier;
+        static DefaultHttpClient client;
+        static SchemeRegistry registry;
+        static SSLSocketFactory socketFactory;
+        static SingleClientConnManager mgr;
+        static DefaultHttpClient httpClient;
+        static ResponseHandler<String> resHandler;
 
-        TextView lyric;
+        static TextView lyric;
         EditText editLyr;
-        ProgressBar lyrProg;
-        ViewSwitcher switcher;
-        View parentView;
+        static ProgressBar lyrProg;
+        static ViewSwitcher switcher;
+        static View parentView;
 
-        Handler handler = new Handler();
+        static Handler handler = new Handler();
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -129,6 +133,22 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
             lyrProg = (ProgressBar) v.findViewById(R.id.lyric_progress);
             switcher = (ViewSwitcher) v.findViewById(R.id.lyric_editor);
             editLyr = (EditText) switcher.findViewById(R.id.edit_lyric);
+
+            setupLyricView();
+
+            /*editBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editLyric();
+                }
+            });*/
+            parentView = v;
+            return v;
+        }
+
+        static synchronized void setupLyricView () {
+            lyrProg.setVisibility(View.VISIBLE);
+            switcher.setVisibility(View.INVISIBLE);
 
             final Audio a = PlayingAudioActivity.playingList.get(PlayingAudioActivity.currentTrack);
             if (a.getLyric() == null) {
@@ -149,25 +169,16 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
                 switcher.setVisibility(View.VISIBLE);
                 lyric.setText(a.getLyric());
             }
-
-            /*editBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    editLyric();
-                }
-            });*/
-            parentView = v;
-            return v;
         }
 
-        boolean isNetworkAvailable() {
+        static boolean isNetworkAvailable() {
             ConnectivityManager connectivityManager
-                    = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+                    = (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
             return activeNetworkInfo != null && activeNetworkInfo.isConnected();
         }
 
-        void getLyric(final Audio a) {
+        static void getLyric(final Audio a) {
             hostnameVerifier = org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
             client = new DefaultHttpClient();
             registry = new SchemeRegistry();
@@ -295,6 +306,10 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
                     }
                 }
             }).start();
+        }
+
+        public static void notifyDataChange() {
+            setupLyricView();
         }
 
         public static LyricFragment newInstance() {
