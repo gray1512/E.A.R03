@@ -156,9 +156,11 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     }
     public void play () {
         setPlayStatus(PLAY);
+        play();
     }
     public void pause() {
         setPlayStatus(PAUSE);
+        pause();
     }
     public void next() {
         play(getNextTrack());
