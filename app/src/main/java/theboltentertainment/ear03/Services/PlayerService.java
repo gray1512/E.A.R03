@@ -30,7 +30,7 @@ import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.Objects.Audio;
 
 public class PlayerService extends Service implements AudioManager.OnAudioFocusChangeListener {
-    private static AudioPlayer audioPlayer;
+    private static AudioMediaPlayer audioPlayer;
 
     private final IBinder iBinder = new LocalBinder();
 
@@ -44,7 +44,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
-    public AudioPlayer getAudioPlayer () {
+    public AudioMediaPlayer getAudioPlayer () {
         return audioPlayer;
     }
 
@@ -69,8 +69,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        ArrayList<Audio> audioList = (ArrayList<Audio>) intent.getSerializableExtra(AudioPlayer.PLAYING_LIST);
-        int audioIndex = intent.getIntExtra(AudioPlayer.PLAYING_TRACK, -1);
+        ArrayList<Audio> audioList = (ArrayList<Audio>) intent.getSerializableExtra(AudioMediaPlayer.PLAYING_LIST);
+        int audioIndex = intent.getIntExtra(AudioMediaPlayer.PLAYING_TRACK, -1);
 
         if (audioIndex == -1 && audioIndex >= audioList.size() && !requestAudioFocus()) {
             stopSelf();
@@ -126,8 +126,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             case AudioManager.AUDIOFOCUS_GAIN:
                 // The service gained audio focus, so it needs to start playing.
                 // resume playback
-                if (!audioPlayer.checkPlayStatus()) audioPlayer.setPlayWhenReady(AudioPlayer.PLAY);
-                audioPlayer.setVolume(1.0f);
+                if (!audioPlayer.checkPlayStatus()) audioPlayer.setPlayStatus(AudioMediaPlayer.PLAY);
+                audioPlayer.setVolume(1.0f,1.0f);
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS:
@@ -141,13 +141,13 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 // Lost focus for a short time, but we have to stop
                 // playback. We don't release the media player because playback
                 // is likely to resume
-                if (audioPlayer.checkPlayStatus()) audioPlayer.setPlayWhenReady(AudioPlayer.PAUSE);
+                if (audioPlayer.checkPlayStatus()) audioPlayer.setPlayStatus(AudioMediaPlayer.PAUSE);
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 // Lost focus for a short time, but it's ok to keep playing
                 // at an attenuated level
-                if (audioPlayer.checkPlayStatus()) audioPlayer.setVolume(0.1f);
+                if (audioPlayer.checkPlayStatus()) audioPlayer.setVolume(0.1f, 0.1f);
                 break;
         }
     }
@@ -192,14 +192,14 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             public void onPlay() {
                 super.onPlay();
                 audioPlayer.play();
-                changePlayingStatus(AudioPlayer.PLAY);
+                changePlayingStatus();
             }
 
             @Override
             public void onPause() {
                 super.onPause();
                 audioPlayer.pause();
-                changePlayingStatus(AudioPlayer.PAUSE);
+                changePlayingStatus();
             }
 
             @Override
@@ -233,31 +233,30 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     }
 
     private void initAudioPlayer(ArrayList<Audio> audioList, int index) {
-        audioPlayer = new AudioPlayer(getBaseContext(), new DefaultRenderersFactory(getBaseContext()),
-                new DefaultTrackSelector(), new DefaultLoadControl());
+        audioPlayer = new AudioMediaPlayer(getBaseContext());
         audioPlayer.play(audioList, index);
-        changePlayingStatus(AudioPlayer.PLAY);
+        changePlayingStatus();
     }
 
     private void register_playNewAudio() {
         //Register playNewMedia receiver
-        IntentFilter filter = new IntentFilter(AudioPlayer.ACTION_RESET_PLAYER);
+        IntentFilter filter = new IntentFilter(AudioMediaPlayer.ACTION_RESET_PLAYER);
         registerReceiver(playNewAudio, filter);
     }
     private void register_playAudio() {
-        IntentFilter filter = new IntentFilter(AudioPlayer.ACTION_PLAY);
+        IntentFilter filter = new IntentFilter(AudioMediaPlayer.ACTION_PLAY);
         registerReceiver(playAudio, filter);
     }
     private void register_nextAudio() {
-        IntentFilter filter = new IntentFilter(AudioPlayer.ACTION_NEXT);
+        IntentFilter filter = new IntentFilter(AudioMediaPlayer.ACTION_NEXT);
         registerReceiver(nextAudio, filter);
     }
     private void register_previousAudio() {
-        IntentFilter filter = new IntentFilter(AudioPlayer.ACTION_PREVIOUS);
+        IntentFilter filter = new IntentFilter(AudioMediaPlayer.ACTION_PREVIOUS);
         registerReceiver(previousAudio, filter);
     }
     private void register_pauseAudio() {
-        IntentFilter filter = new IntentFilter(AudioPlayer.ACTION_PAUSE);
+        IntentFilter filter = new IntentFilter(AudioMediaPlayer.ACTION_PAUSE);
         registerReceiver(pauseAudio, filter);
     }
     private void registerBecomingNoisyReceiver() {
@@ -270,28 +269,28 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private BroadcastReceiver playNewAudio = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            ArrayList audioList = (ArrayList<Audio>) intent.getSerializableExtra(AudioPlayer.PLAYING_LIST);
-            int audioIndex = intent.getIntExtra(AudioPlayer.PLAYING_TRACK, -1);
+            ArrayList audioList = (ArrayList<Audio>) intent.getSerializableExtra(AudioMediaPlayer.PLAYING_LIST);
+            int audioIndex = intent.getIntExtra(AudioMediaPlayer.PLAYING_TRACK, -1);
 
             if (audioIndex == -1 && audioIndex >= audioList.size()) {
                 stopSelf();
             }
             audioPlayer.play(audioList, audioIndex);
-            changePlayingStatus(AudioPlayer.PLAY);
+            changePlayingStatus();
         }
     };
     private BroadcastReceiver playAudio = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             audioPlayer.play();
-            changePlayingStatus(AudioPlayer.PLAY);
+            changePlayingStatus();
         }
     };
     private BroadcastReceiver pauseAudio = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             audioPlayer.pause();
-            changePlayingStatus(AudioPlayer.PAUSE);
+            changePlayingStatus();
         }
     };
     private BroadcastReceiver nextAudio = new BroadcastReceiver() {
@@ -329,7 +328,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                         if (audioPlayer != null) {
                             audioPlayer.pause();
                             ongoingCall = true;
-                            changePlayingStatus(AudioPlayer.PAUSE);
+                            changePlayingStatus();
                         }
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
@@ -338,7 +337,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                             if (ongoingCall) {
                                 ongoingCall = false;
                                 audioPlayer.play();
-                                changePlayingStatus(AudioPlayer.PLAY);
+                                changePlayingStatus();
                             }
                         }
                         break;
@@ -358,10 +357,10 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
         if (actionString.equalsIgnoreCase("ACTION_PLAY")) {
             audioPlayer.play();
-            changePlayingStatus(AudioPlayer.PLAY);
+            changePlayingStatus();
         } else if (actionString.equalsIgnoreCase("ACTION_PAUSE")) {
             audioPlayer.pause();
-            changePlayingStatus(AudioPlayer.PAUSE);
+            changePlayingStatus();
         } else if (actionString.equalsIgnoreCase("ACTION_NEXT")) {
             audioPlayer.next();
         } else if (actionString.equalsIgnoreCase("ACTION_PREVIOUS")) {
@@ -369,9 +368,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         }
     }
 
-    private void changePlayingStatus(boolean stt) {
-        Intent broadcastIntent = new Intent(AudioPlayer.CHANGE_PLAYING_STATUS);
-        broadcastIntent.putExtra(AudioPlayer.PLAYING_STATUS, stt);
+    private void changePlayingStatus() {
+        Intent broadcastIntent = new Intent(AudioMediaPlayer.CHANGE_PLAYING_STATUS);
         getBaseContext().sendBroadcast(broadcastIntent);
     }
     

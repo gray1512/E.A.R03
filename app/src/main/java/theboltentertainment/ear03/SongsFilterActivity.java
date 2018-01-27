@@ -19,8 +19,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.FilterViewAdapter;
-import theboltentertainment.ear03.Classes.SongsViewAdapter;
-import theboltentertainment.ear03.Services.AudioPlayer;
+import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
 import theboltentertainment.ear03.Views.RecyclerItemClickListener;
 import theboltentertainment.ear03.Classes.SQLDatabase;
@@ -29,7 +28,7 @@ import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Objects.Playlist;
 
 import static theboltentertainment.ear03.MainActivity.serviceConnection;
-import static theboltentertainment.ear03.Services.AudioPlayer.PLAYING_LIST;
+import static theboltentertainment.ear03.Services.AudioMediaPlayer.PLAYING_LIST;
 
 public class SongsFilterActivity extends AppCompatActivity {
     private String ACTIVITY;
@@ -169,14 +168,14 @@ public class SongsFilterActivity extends AppCompatActivity {
         if (!MainActivity.serviceBound) {
             Intent playerIntent = new Intent(this, PlayerService.class);
             playerIntent.putExtra(PLAYING_LIST, ((FilterViewAdapter) recyclerView.getAdapter()).getAudioList());
-            playerIntent.putExtra(AudioPlayer.PLAYING_TRACK, index);
+            playerIntent.putExtra(AudioMediaPlayer.PLAYING_TRACK, index);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
             //Service is active
             //Send a broadcast to the service -> PLAY_NEW_AUDIO
-            Intent broadcastIntent = new Intent(AudioPlayer.ACTION_RESET_PLAYER);
-            broadcastIntent.putExtra(AudioPlayer.PLAYING_TRACK, index);
+            Intent broadcastIntent = new Intent(AudioMediaPlayer.ACTION_RESET_PLAYER);
+            broadcastIntent.putExtra(AudioMediaPlayer.PLAYING_TRACK, index);
             broadcastIntent.putExtra(PLAYING_LIST, ((FilterViewAdapter) recyclerView.getAdapter()).getAudioList());
             sendBroadcast(broadcastIntent);
         }

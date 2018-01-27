@@ -31,18 +31,13 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.android.exoplayer2.Player;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-import theboltentertainment.ear03.Classes.MainViewPagerAdapter;
 import theboltentertainment.ear03.Classes.PlayingViewPagerAdapter;
-import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.Objects.Audio;
-import theboltentertainment.ear03.Services.AudioPlayer;
+import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
-
-import static theboltentertainment.ear03.Services.AudioPlayer.PLAYING_LIST;
 
 public class PlayingAudioActivity extends AppCompatActivity {
     public static ArrayList<Audio> playingList;
@@ -58,6 +53,8 @@ public class PlayingAudioActivity extends AppCompatActivity {
     private ImageView albumCover;
     private TextView title;
     private TextView artist;
+
+    private MenuItem fullscreenMode;
 
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
     private ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
@@ -78,17 +75,9 @@ public class PlayingAudioActivity extends AppCompatActivity {
             serviceBound = false;
         }
     };
-    private AudioPlayer player;
+    private AudioMediaPlayer player;
 
     private Handler handler = new Handler();
-
-    private Thread bindPlayerService =  new Thread(new Runnable() {
-        @Override
-        public void run() {
-            bindService(new Intent(getBaseContext(), PlayerService.class),
-                    serviceConnection, Context.BIND_AUTO_CREATE);
-        }
-    });
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -104,21 +93,33 @@ public class PlayingAudioActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playing_audio);
 
-        bindPlayerService.start();
-        registerReceiver(mMessageReceiver, new IntentFilter(AudioPlayer.CHANGE_TRACK_DATA));
+        bindService(new Intent(getBaseContext(), PlayerService.class),
+                serviceConnection, Context.BIND_AUTO_CREATE);
+        registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unbindService(serviceConnection);
+        serviceBound = false;
         unregisterReceiver(mMessageReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bindService(new Intent(getBaseContext(), PlayerService.class),
+                serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.playing_actionbar, menu);
+        fullscreenMode = menu.getItem(0);
+        if (serviceBound) fullscreenMode.setVisible(true);
+        else fullscreenMode.setVisible(false);
         return true;
     }
 
@@ -184,16 +185,16 @@ public class PlayingAudioActivity extends AppCompatActivity {
         });
 
         ImageButton playBtn = (ImageButton) findViewById(R.id.playing_playbtn);
-        if (player.getPlayWhenReady()) playBtn.setImageResource(R.drawable.pause);
+        if (player.checkPlayStatus()) playBtn.setImageResource(R.drawable.pause);
         else playBtn.setImageResource(R.drawable.play);
 
         ImageButton shuffleBtn = (ImageButton) findViewById(R.id.playing_shuffle);
-        if (player.getShuffleModeEnabled()) shuffleBtn.setImageResource(R.drawable.shuffle);
+        if (player.getShuffleMode()) shuffleBtn.setImageResource(R.drawable.shuffle);
         else shuffleBtn.setImageResource(R.drawable.shuffle_off);
 
         ImageButton repeatBtn = (ImageButton) findViewById(R.id.playing_repeat);
-        if (player.getRepeatMode() == AudioPlayer.REPEAT_ALL) repeatBtn.setImageResource(R.drawable.repeat);
-        else if (player.getRepeatMode() == AudioPlayer.REPEAT_ONE) repeatBtn.setImageResource(R.drawable.replay);
+        if (player.getRepeatMode() == AudioMediaPlayer.REPEAT_ALL) repeatBtn.setImageResource(R.drawable.repeat);
+        else if (player.getRepeatMode() == AudioMediaPlayer.REPEAT_ONE) repeatBtn.setImageResource(R.drawable.replay);
         else repeatBtn.setImageResource(R.drawable.play_once);
 
         albumCover = (ImageView) findViewById(R.id.playing_album);
@@ -205,6 +206,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
         current = (TextView) findViewById(R.id.playing_timer);
         duration = (TextView) findViewById(R.id.playing_duration);
         setSeekBar();
+        setFullscreenMode();
     }
 
     private synchronized void updateViews() {
@@ -266,6 +268,10 @@ public class PlayingAudioActivity extends AppCompatActivity {
         });
     }
 
+    private void setFullscreenMode() {
+        if (fullscreenMode != null) fullscreenMode.setVisible(true);
+    }
+
     private void getCroppedBitmap(String data) {
         Bitmap bitmap;
         if (data != null) {
@@ -325,28 +331,28 @@ public class PlayingAudioActivity extends AppCompatActivity {
     }
 
     public void play (View v) {
-        if (player.getPlayWhenReady()) {
+        if (player.checkPlayStatus()) {
             ((ImageButton) v).setImageResource(R.drawable.play);
-            Intent i = new Intent(AudioPlayer.ACTION_PAUSE);
+            Intent i = new Intent(AudioMediaPlayer.ACTION_PAUSE);
             sendBroadcast(i);
         } else {
             ((ImageButton) v).setImageResource(R.drawable.pause);
-            Intent i = new Intent(AudioPlayer.ACTION_PLAY);
+            Intent i = new Intent(AudioMediaPlayer.ACTION_PLAY);
             sendBroadcast(i);
         }
 
     }
     public void next (View v) {
-        Intent next = new Intent(AudioPlayer.ACTION_NEXT);
+        Intent next = new Intent(AudioMediaPlayer.ACTION_NEXT);
         sendBroadcast(next);
     }
     public void previous (View v) {
-        Intent previous = new Intent(AudioPlayer.ACTION_PREVIOUS);
+        Intent previous = new Intent(AudioMediaPlayer.ACTION_PREVIOUS);
         sendBroadcast(previous);
     }
     public void setShuffle (View v) {
-        player.setShuffleModeEnabled(!player.getShuffleModeEnabled());
-        if (player.getShuffleModeEnabled()) {
+        player.setShuffleMode(!player.getShuffleMode());
+        if (player.getShuffleMode()) {
             ((ImageButton) v).setImageResource(R.drawable.shuffle);
         } else {
             ((ImageButton) v).setImageResource(R.drawable.shuffle_off);
@@ -354,17 +360,17 @@ public class PlayingAudioActivity extends AppCompatActivity {
     }
     public void setRepeat (View v) {
         switch (player.getRepeatMode()) {
-            case AudioPlayer.REPEAT_ALL: {
+            case AudioMediaPlayer.REPEAT_ALL: {
                 player.setRepeatMode(Player.REPEAT_MODE_ONE);
                 ((ImageButton) v).setImageResource(R.drawable.replay);
                 break;
             }
-            case AudioPlayer.REPEAT_ONE: {
+            case AudioMediaPlayer.REPEAT_ONE: {
                 player.setRepeatMode(Player.REPEAT_MODE_OFF);
                 ((ImageButton) v).setImageResource(R.drawable.play_once);
                 break;
             }
-            case AudioPlayer.REPEAT_OFF: {
+            case AudioMediaPlayer.REPEAT_OFF: {
                 player.setRepeatMode(Player.REPEAT_MODE_ALL);
                 ((ImageButton) v).setImageResource(R.drawable.repeat);
                 break;

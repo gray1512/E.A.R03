@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -26,7 +25,7 @@ import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Classes.MainViewPagerAdapter;
 import theboltentertainment.ear03.Objects.Playlist;
-import theboltentertainment.ear03.Services.AudioPlayer;
+import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
 
 public class MainActivity extends AppCompatActivity {
@@ -52,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MenuItem playingItem;
 
-    private static AudioPlayer player;
+    private static AudioMediaPlayer player;
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
     public static ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
         @Override
@@ -95,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             Log.i("Message", "Received");
             if (!playingItem.isVisible()) playingItem.setVisible(true);
-            boolean stt = intent.getBooleanExtra(AudioPlayer.PLAYING_STATUS, false);
             // TODO set different icon with animation depend on stt value
         }
     };
@@ -128,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         playlistShuffle = (ImageButton) findViewById(R.id.playlist_shuffle);
         playlistFlow    = (ImageButton) findViewById(R.id.playlist_flow);
 
-        registerReceiver(mMessageReceiver, new IntentFilter(AudioPlayer.CHANGE_PLAYING_STATUS));
+        registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
     }
 
     @Override
@@ -156,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(mMessageReceiver, new IntentFilter(AudioPlayer.CHANGE_PLAYING_STATUS));
+        registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
     }
 
     @Override
@@ -182,8 +180,8 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.playing: {
                 Intent intent = new Intent(getBaseContext(), PlayingAudioActivity.class);
-                intent.putExtra(AudioPlayer.PLAYING_LIST, player.getPlayingList());
-                intent.putExtra(AudioPlayer.PLAYING_TRACK, player.getCurrentTrack());
+                intent.putExtra(AudioMediaPlayer.PLAYING_LIST, player.getPlayingList());
+                intent.putExtra(AudioMediaPlayer.PLAYING_TRACK, player.getCurrentTrack());
                 startActivity(intent);
                 break;
             }

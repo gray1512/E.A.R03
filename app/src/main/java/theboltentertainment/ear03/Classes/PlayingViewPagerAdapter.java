@@ -171,14 +171,14 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
             }
         }
 
-        static boolean isNetworkAvailable() {
+        static synchronized boolean isNetworkAvailable() {
             ConnectivityManager connectivityManager
                     = (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
             return activeNetworkInfo != null && activeNetworkInfo.isConnected();
         }
 
-        static void getLyric(final Audio a) {
+        static synchronized void getLyric(final Audio a) {
             hostnameVerifier = org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
             client = new DefaultHttpClient();
             registry = new SchemeRegistry();

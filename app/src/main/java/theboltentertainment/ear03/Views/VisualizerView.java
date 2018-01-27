@@ -5,25 +5,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.drawable.shapes.RectShape;
 import android.media.audiofx.Visualizer;
-import android.os.Handler;
-import android.support.constraint.solver.widgets.Rectangle;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
 
-import java.util.Arrays;
-import java.util.Vector;
-import java.util.logging.LogRecord;
 
 /**
  * A simple class that draws waveform data received from a
@@ -38,32 +24,20 @@ public class VisualizerView extends View {
     //private Path curvePath;
 
     private float[][] displayFft;
+    private float[] drawValue;
 
-
-    private int numberOfZone = 4; // 2^n
+    private int numberOfZone = 3; // 2^n
     private float rotation = (float) ((2 * Math.PI) / (numberOfZone*2));
 
     private float itemHeight;
     private float centerX, centerY;
     private float radius;
 
+    float n1X, n1Y, n2X, n2Y;
+    float mX, mY;
+    float[] point1 = new float[2], point2 = new float[2], coorStart, coorEnd, coorPeak;
 
     Path curvePath = new Path();
-
-    Handler h = new Handler();
-    Thread getFft = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            displayFft = getDisplayValueFft();
-            //getCubicValue();
-            h.post(new Runnable() {
-                @Override
-                public void run() {
-                    invalidate();
-                }
-            });
-        }
-    });
 
     public VisualizerView(Context context) {
         super(context);
@@ -88,27 +62,21 @@ public class VisualizerView extends View {
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
 
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        float width = 200 * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT);
+        float width = 250 * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT);
 
         this.itemHeight = (float) (width * 0.2);
         this.centerX = (float) (width * 0.5);
         this.centerY = (float) (width * 0.5);
-        this.radius = (float) (width * 0.3);
+        this.radius = (float) (width * 0.24);
+
+        drawValue = new float[numberOfZone];
     }
 
-    public void updateVisualizerWavefrom (byte[] waveformBytes, int samplingRate) {
-        // waveform data from 0 or DC to samplingRate
-        this.fftBytes = waveformBytes;
-        this.samplingRate = samplingRate;
-        //getFft.start();
-        //displayFft = getDisplayValueWavefrom();
-        //invalidate();
-    }
     public void updateVisualizerFft (byte[] fftBytes, int samplingRate) {
         // fft data from 0 or DC to haft of samplingRate
         this.fftBytes = fftBytes;
         this.samplingRate = samplingRate;
-        this.range = samplingRate / 2;
+        this.range = samplingRate;
         this.displayFft = getDisplayValueFft();
         //this.curvePath = getCubicValue();
         invalidate();
@@ -116,16 +84,20 @@ public class VisualizerView extends View {
     }
 
     private float[][] getDisplayValueFft() {
-        float[] drawValue = new float[numberOfZone];
-
         float max = 0;
         for (int i = 0; i < numberOfZone; i ++) {
             int n;
             float magnitude, freq;
-            for (int j = 0; j < (fftBytes.length / numberOfZone); j += 2) {
-                n = i * (fftBytes.length / numberOfZone) + j;
+            float area = 0, size = 0;
+            switch (i) {
+                case 0: { area = 0; size = (fftBytes.length / 4) * 0.125f; break;}
+                case 1: { area = 0.125f; size = (fftBytes.length / 4) * 0.125f; break; }
+                case 2: { area = 0.25f; size = (fftBytes.length / 4) * 3.75f; break; }
+            }
+            for (int j = 0; j < size; j += 2) {
+                n = (int) (area * (fftBytes.length / 4) + j);
                 magnitude = (float) Math.sqrt(fftBytes[n]*fftBytes[n] + fftBytes[n+1]*fftBytes[n+1]);
-                freq = magnitude * samplingRate/(fftBytes.length / numberOfZone);
+                freq = magnitude * samplingRate/(fftBytes.length / 4);
                 if (j == 0) max = freq;
                 if (freq > max) {
                     max = freq;
@@ -133,10 +105,10 @@ public class VisualizerView extends View {
             }
             drawValue[i] = max;
         }
-        return getDrawPoint(drawValue);
+        return getDrawPoint();
     }
 
-    private float[][] getDrawPoint(float[] drawValue) {
+    private synchronized float[][] getDrawPoint() {
         float[][] drawPoint = new float[numberOfZone * 2 * 2][2];
         float a = 0, height;
         float value;
@@ -165,10 +137,6 @@ public class VisualizerView extends View {
         return drawPoint;
     }
 
-    private float[] getDisplayValueWavefrom() {
-        return null;
-    }
-
     @Override
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
@@ -177,12 +145,6 @@ public class VisualizerView extends View {
             return;
         }
 
-        float n1X, n1Y, n2X, n2Y;
-        float mX, mY;
-        float[] point1 = new float[2], point2 = new float[2], coorStart, coorEnd;
-
-        RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-        float startAngle;
         curvePath.reset();
         curvePath.moveTo(displayFft[0][0], displayFft[0][1]);
         for (int a = 0 ; a < displayFft.length; a ++) {
@@ -205,19 +167,19 @@ public class VisualizerView extends View {
             point2[0] = coorStart[0] + coorEnd[0] - point1[0];
             point2[1] = coorStart[1] + coorEnd[1] - point1[1];
 
-            /*if (Math.sqrt(Math.pow(point1[0]-point2[0], 2) + Math.pow(point1[1]-point2[1], 2)) < 15) {
-                //degree
-                startAngle = 90 - (a * 45/2);
-                curvePath.addArc(rectF, startAngle,-45/2);
-            } else {
-
-            }*/
             curvePath.cubicTo(point1[0], point1[1],
                     point2[0], point2[1],
                     coorEnd[0], coorEnd[1]);
         }
 
-        canvas.drawCircle(centerX, centerX, radius, paint);
+        /*for (int a = 0 ; a < displayFft.length; a += 2) {
+            coorPeak = displayFft[a+1];
+            coorEnd = (a == displayFft.length - 2) ? displayFft[0] : displayFft[a + 2];
+
+            curvePath.quadTo(coorPeak[0], coorPeak[1], coorEnd[0], coorEnd[1]);
+        }*/
+
+        canvas.drawCircle(centerX, centerY, radius+1, paint);
         canvas.drawPath(curvePath, paint);
     }
 }

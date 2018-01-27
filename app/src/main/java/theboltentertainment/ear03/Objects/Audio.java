@@ -1,19 +1,9 @@
 package theboltentertainment.ear03.Objects;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.widget.Toast;
-
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Comparator;
-
-import theboltentertainment.ear03.Services.AudioPlayer;
 
 /**
  * Created by Admin on 27/03/2017.

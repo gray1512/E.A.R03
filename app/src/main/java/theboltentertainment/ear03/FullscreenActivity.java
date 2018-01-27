@@ -1,8 +1,10 @@
 package theboltentertainment.ear03;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
@@ -12,18 +14,19 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.media.audiofx.Visualizer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import theboltentertainment.ear03.Classes.AudioVisualizer;
 import theboltentertainment.ear03.Objects.Audio;
-import theboltentertainment.ear03.Services.AudioPlayer;
+import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
 import theboltentertainment.ear03.Views.VisualizerView;
 
@@ -35,7 +38,9 @@ public class FullscreenActivity extends AppCompatActivity {
     private TextView title;
     private TextView artist;
 
-    private AudioPlayer player;
+    public static VisualizerView mVisualizerView;
+
+    private AudioMediaPlayer player;
     private PlayerService playerService;
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
     private ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
@@ -61,12 +66,23 @@ public class FullscreenActivity extends AppCompatActivity {
     private Thread bindPlayerService =  new Thread(new Runnable() {
         @Override
         public void run() {
-            bindService(new Intent(getBaseContext(), PlayerService.class),
-                    serviceConnection, Context.BIND_AUTO_CREATE);
+            if (!serviceBound) {
+                bindService(new Intent(getBaseContext(), PlayerService.class),
+                        serviceConnection, Context.BIND_AUTO_CREATE);
+            }
         }
     });
 
     private Handler handler = new Handler();
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("Message", "Playing Audio Received");
+            // TODO update view when receive Change Track mess
+            //setupVisualizer();
+        }
+    };
 
 
     @Override
@@ -80,49 +96,57 @@ public class FullscreenActivity extends AppCompatActivity {
         artist = (TextView) findViewById(R.id.fullscreen_artist);
 
         bindPlayerService.start();
+        registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unbindService(serviceConnection);
+        unregisterReceiver(mMessageReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bindService(new Intent(getBaseContext(), PlayerService.class),
+                serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void setupViews() {
-        getCroppedBitmap(playingList.get(currentTrack).getData());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (playingList.get(currentTrack).getAlbum() != null) {
+                    getCroppedBitmap(playingList.get(currentTrack).getAlbum().getCover());
+                }
+            }
+        }).start();
 
-        final VisualizerView mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
+         mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
 
         // Create the Visualizer object and attach it to our media player.
-        Visualizer mVisualizer = new Visualizer(player.getAudioSessionId());
-        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
-        mVisualizer.setDataCaptureListener(new Visualizer.OnDataCaptureListener() {
-            public void onWaveFormDataCapture(Visualizer visualizer, byte[] bytes,
-                                              int samplingRate) {
-                //if(bytes!=null) { mVisualizerView.updateVisualizerFft(bytes, samplingRate); }
-                // use this for line
-            }
-            public void onFftDataCapture(Visualizer visualizer, byte[] bytes, int samplingRate) {
-                if(bytes!=null) { mVisualizerView.updateVisualizerFft(bytes, samplingRate); }
-                // use this for bar
-            }
-        }, Visualizer.getMaxCaptureRate() / 2, true, true);
-        // Make sure the visualizer is enabled only when you actually want to receive data, and
-        // when it makes sense to receive data.
+        /*AudioVisualizer mVisualizer = new AudioVisualizer(player.getAudioSessionId());
+        player.setVisualizer(mVisualizer);
+        mVisualizer.setEnabled(true);*/
+        setupVisualizer();
+    }
+
+    private void setupVisualizer() {
+        AudioVisualizer mVisualizer = new AudioVisualizer(player.getAudioSessionId());
+        mVisualizer.init();
         mVisualizer.setEnabled(true);
     }
 
-    private void getCroppedBitmap(String data) {
+    private synchronized void getCroppedBitmap(String data) {
         Bitmap bitmap;
+        final Bitmap output;
         if (data != null) {
-            bitmap = BitmapFactory.decodeFile(data);
-            //bitmap = Bitmap.createScaledBitmap(bitmap, albumCover.getLayoutParams().width,
-            //albumCover.getLayoutParams().height, false);
-            final Bitmap output;
             try {
+                bitmap = BitmapFactory.decodeFile(data);
                 output = Bitmap.createBitmap(bitmap.getWidth(),
                         bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-            } catch (NullPointerException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 return;
             }
@@ -142,14 +166,14 @@ public class FullscreenActivity extends AppCompatActivity {
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
             canvas.drawBitmap(bitmap, rect, rect, paint);
 
-            handler.post(new Runnable() {
+            runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     album.setImageBitmap(output);
                 }
             });
         } else {
-            handler.post(new Runnable() {
+            runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     album.setImageResource(R.drawable.ic_info_black_24dp);

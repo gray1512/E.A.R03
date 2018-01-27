@@ -8,8 +8,8 @@
 
     <theboltentertainment.ear03.Views.VisualizerView
         android:id="@+id/visualizerView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="64dp"
         android:layout_marginTop="8dp"
@@ -26,6 +26,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:background="@drawable/ic_info_black_24dp"
         app:layout_constraintBottom_toBottomOf="@+id/visualizerView"
         app:layout_constraintEnd_toEndOf="@+id/visualizerView"
         app:layout_constraintStart_toStartOf="@+id/visualizerView"
