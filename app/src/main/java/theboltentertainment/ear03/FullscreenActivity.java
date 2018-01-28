@@ -6,22 +6,35 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.AudioVisualizer;
@@ -31,14 +44,30 @@ import theboltentertainment.ear03.Services.PlayerService;
 import theboltentertainment.ear03.Views.VisualizerView;
 
 public class FullscreenActivity extends AppCompatActivity {
+    private final int REQUEST_IMG = 10001;
+    private final String RESULT_IMG = "Background img from the galery";
+
     private ArrayList<Audio> playingList;
     private int currentTrack = 0;
+
+    private View activityView;
 
     private ImageView album;
     private TextView title;
     private TextView artist;
 
+    private ImageButton settings;
+    private View settingsLayout;
+    private TextView background;
+    private TextView colorText;
+    private EditText colorName;
+    private SeekBar redBar;
+    private SeekBar greenBar;
+    private SeekBar blueBar;
+    private SeekBar alphaBar;
+
     public static VisualizerView mVisualizerView;
+    private AudioVisualizer mVisualizer;
 
     private AudioMediaPlayer player;
     private PlayerService playerService;
@@ -91,9 +120,21 @@ public class FullscreenActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_fullscreen);
 
+        activityView = findViewById(R.id.fullscreen);
+
         album = (ImageView) findViewById(R.id.fullscreen_album);
         title = (TextView) findViewById(R.id.fullscreen_title);
         artist = (TextView) findViewById(R.id.fullscreen_artist);
+
+        settings = (ImageButton) findViewById(R.id.settings);
+        settingsLayout = findViewById(R.id.fullscreen_settings_layout);
+        background = (TextView) settingsLayout.findViewById(R.id.fullscreen_background);
+        colorText = (TextView) settingsLayout.findViewById(R.id.fullscreen_colortext);
+        colorName = (EditText) settingsLayout.findViewById(R.id.color_name);
+        redBar = (SeekBar) settingsLayout.findViewById(R.id.red_bar);
+        greenBar = (SeekBar) settingsLayout.findViewById(R.id.green_bar);
+        blueBar = (SeekBar) settingsLayout.findViewById(R.id.blue_bar);
+        alphaBar = (SeekBar) settingsLayout.findViewById(R.id.alpha_bar);
 
         bindPlayerService.start();
         registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
@@ -102,6 +143,7 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mVisualizer.release();
         unbindService(serviceConnection);
         unregisterReceiver(mMessageReceiver);
     }
@@ -111,6 +153,24 @@ public class FullscreenActivity extends AppCompatActivity {
         super.onResume();
         bindService(new Intent(getBaseContext(), PlayerService.class),
                 serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        if (reqCode == REQUEST_IMG && resultCode == RESULT_OK) {
+            try {
+                final Uri imageUri = data.getData();
+                if (imageUri == null) return;
+                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                BitmapDrawable bd = new BitmapDrawable(getResources(), selectedImage);
+                activityView.setBackgroundDrawable(bd);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void setupViews() {
@@ -124,16 +184,11 @@ public class FullscreenActivity extends AppCompatActivity {
         }).start();
 
          mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
-
-        // Create the Visualizer object and attach it to our media player.
-        /*AudioVisualizer mVisualizer = new AudioVisualizer(player.getAudioSessionId());
-        player.setVisualizer(mVisualizer);
-        mVisualizer.setEnabled(true);*/
         setupVisualizer();
     }
 
     private void setupVisualizer() {
-        AudioVisualizer mVisualizer = new AudioVisualizer(player.getAudioSessionId());
+        mVisualizer = new AudioVisualizer(player.getAudioSessionId());
         mVisualizer.init();
         mVisualizer.setEnabled(true);
     }
@@ -180,5 +235,73 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    public void exit(View v) {
+        this.finish();
+    }
+
+    public void settings (View v) {
+        v.setVisibility(View.GONE);
+        settingsLayout.setVisibility(View.VISIBLE);
+
+        int color = colorText.getCurrentTextColor();
+        int r = Color.red(color);
+        int g = Color.green(color);
+        int b = Color.blue(color);
+        int a = Color.alpha(color);
+
+        colorName.setText("#" + color);
+        redBar.setProgress(r);
+        greenBar.setProgress(g);
+        blueBar.setProgress(b);
+        alphaBar.setProgress(a);
+
+        redBar.setOnSeekBarChangeListener(seekBarChangeListener);
+        greenBar.setOnSeekBarChangeListener(seekBarChangeListener);
+        blueBar.setOnSeekBarChangeListener(seekBarChangeListener);
+        alphaBar.setOnSeekBarChangeListener(seekBarChangeListener);
+    }
+    private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            int color = Color.argb(alphaBar.getProgress(), redBar.getProgress(),
+                    greenBar.getProgress(), blueBar.getProgress());
+            colorName.setText("#" + color);
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
+        }
+    };
+
+    public void exitSettings (View v) {
+        int color = Color.argb(alphaBar.getProgress(), redBar.getProgress(),
+                greenBar.getProgress(), blueBar.getProgress());
+
+        title.setTextColor(color);
+        artist.setTextColor(color);
+        background.setTextColor(color);
+        colorText.setTextColor(color);
+        colorName.setTextColor(color);
+
+        settingsLayout.setVisibility(View.GONE);
+        settings.setVisibility(View.VISIBLE);
+    }
+
+    public void setDefaultBackground(View v) {
+        activityView.setBackgroundResource(R.drawable.fullscreen_img);
+    }
+
+    public void chooseBackground (View v) {
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        photoPickerIntent.setType("image/*");
+        startActivityForResult(photoPickerIntent, REQUEST_IMG);
     }
 }

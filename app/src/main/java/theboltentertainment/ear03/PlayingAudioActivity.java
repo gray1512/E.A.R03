@@ -55,6 +55,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
     private TextView artist;
 
     private MenuItem fullscreenMode;
+    private MenuItem editBtn;
 
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
     private ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
@@ -83,7 +84,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i("Message", "Received");
-            // TODO update view when receve Change Track mess
+            // TODO update view when receive Change Track mess
             updateViews();
         }
     };
@@ -117,7 +118,10 @@ public class PlayingAudioActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.playing_actionbar, menu);
-        fullscreenMode = menu.getItem(0);
+
+        editBtn = menu.getItem(0);
+        fullscreenMode = menu.getItem(1);
+
         if (serviceBound) fullscreenMode.setVisible(true);
         else fullscreenMode.setVisible(false);
         return true;
@@ -128,6 +132,10 @@ public class PlayingAudioActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home: {
                 this.finish();
+                break;
+            }
+            case R.id.edit_btn: {
+                PlayingViewPagerAdapter.LyricFragment.editLyric(item);
                 break;
             }
             case R.id.fullscreen: {
@@ -170,11 +178,15 @@ public class PlayingAudioActivity extends AppCompatActivity {
                     case 0: {
                         tab0.setImageResource(R.drawable.tab2_icon);
                         tab1.setImageResource(R.drawable.tab_icon);
+
+                        editBtn.setVisible(false);
                         break;
                     }
                     case 1: {
                         tab0.setImageResource(R.drawable.tab_icon);
                         tab1.setImageResource(R.drawable.tab3_icon);
+
+                        editBtn.setVisible(true);
                         break;
                     }
                 }

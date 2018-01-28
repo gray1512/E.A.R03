@@ -106,6 +106,10 @@ public class MainActivity extends AppCompatActivity {
         audioList = (ArrayList<Audio>) getIntent().getSerializableExtra(LauncherActivity.AUDIO_LIST);
         extractAlbumNPlaylist();
 
+        navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        navigation.setSelectedItemId(R.id.navigation_songs);
+
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         viewPager.setAdapter(new MainViewPagerAdapter(getSupportFragmentManager()));
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -114,15 +118,26 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                switch (position) {
+                    case 0: {
+                        navigation.setSelectedItemId(R.id.navigation_album);
+                        break;
+                    }
+                    case 1: {
+                        navigation.setSelectedItemId(R.id.navigation_songs);
+                        break;
+                    }
+                    case 2: {
+                        navigation.setSelectedItemId(R.id.navigation_playlist);
+                        break;
+                    }
+                }
             }
 
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
 
-        navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-        navigation.setSelectedItemId(R.id.navigation_songs);
         playlistShuffle = (ImageButton) findViewById(R.id.playlist_shuffle);
         playlistFlow    = (ImageButton) findViewById(R.id.playlist_flow);
 

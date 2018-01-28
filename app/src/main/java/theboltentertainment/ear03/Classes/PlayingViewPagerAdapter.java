@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -112,7 +113,7 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
         static ResponseHandler<String> resHandler;
 
         static TextView lyric;
-        EditText editLyr;
+        static EditText editLyr;
         static ProgressBar lyrProg;
         static ViewSwitcher switcher;
         static View parentView;
@@ -135,15 +136,47 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
             editLyr = (EditText) switcher.findViewById(R.id.edit_lyric);
 
             setupLyricView();
-
-            /*editBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    editLyric();
-                }
-            });*/
             parentView = v;
             return v;
+        }
+
+        public static void editLyric (MenuItem editBtn) {
+            switcher.showNext();
+            editLyr.setText(lyric.getText(), TextView.BufferType.EDITABLE);
+            lyric.setVisibility(View.INVISIBLE);
+            editLyr.setVisibility(View.VISIBLE);
+
+            editBtn.setIcon(R.drawable.checked);
+            editBtn.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    doneEditLyric(item);
+                    return true;
+                }
+            });
+        }
+
+        public static void doneEditLyric (final MenuItem editBtn) {
+            switcher.showPrevious();
+            lyric.setText(editLyr.getText().toString());
+            Audio a = PlayingAudioActivity.playingList.get(PlayingAudioActivity.currentTrack);
+            a.setLyric(editLyr.getText().toString());
+
+            SQLDatabase db = new SQLDatabase(c);
+            db.updateLyric(a);
+            db.close();
+
+            lyric.setVisibility(View.VISIBLE);
+            editLyr.setVisibility(View.INVISIBLE);
+
+            editBtn.setIcon(R.drawable.edit);
+            editBtn.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    editLyric(editBtn);
+                    return true;
+                }
+            });
         }
 
         static synchronized void setupLyricView () {
