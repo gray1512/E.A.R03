@@ -32,6 +32,7 @@ public class VisualizerView extends View {
     private float itemHeight;
     private float centerX, centerY;
     private float radius;
+    private float width = 0;
 
     float n1X, n1Y, n2X, n2Y;
     float mX, mY;
@@ -60,14 +61,6 @@ public class VisualizerView extends View {
         paint.setAntiAlias(true);
         paint.setColor(Color.rgb(255, 255, 255));
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-
-        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        float width = 250 * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT);
-
-        this.itemHeight = (float) (width * 0.2);
-        this.centerX = (float) (width * 0.5);
-        this.centerY = (float) (width * 0.5);
-        this.radius = (float) (width * 0.24);
 
         drawValue = new float[numberOfZone];
     }
@@ -144,6 +137,14 @@ public class VisualizerView extends View {
         if (displayFft == null) {
             return;
         }
+        if (width == 0) {
+            this.width = canvas.getWidth();
+            this.itemHeight = (float) (width * 0.2);
+            this.centerX = (float) (width * 0.5);
+            this.centerY = (float) (width * 0.5);
+            this.radius = (float) (width * 0.24);
+        }
+
 
         curvePath.reset();
         curvePath.moveTo(displayFft[0][0], displayFft[0][1]);

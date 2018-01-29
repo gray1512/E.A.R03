@@ -42,7 +42,7 @@ public class LauncherActivity extends AppCompatActivity {
     private SQLDatabase db;
     private MediaMetadataRetriever mmr;
 
-    private final String MUSIC_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString();
+    private final String MUSIC_DIRECTORY = Environment.getExternalStorageDirectory().toString();
     private final String ALBUM_DIRECTORY = Environment.getExternalStorageDirectory().toString() + "/E.A.R/Album";
 
     public static final String AUDIO_LIST = "Audio List";

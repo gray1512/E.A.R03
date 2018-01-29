@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     public static ArrayList<Album> albumList = new ArrayList<>();
     public static ArrayList<Playlist> playlists = new ArrayList<>();
 
+    private static Context c;
+
     private BottomNavigationView navigation;
     private ViewPager viewPager;
 
@@ -75,13 +77,13 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_album:
-                    viewPager.setCurrentItem(0);
+                    if (viewPager != null) viewPager.setCurrentItem(0);
                     return true;
                 case R.id.navigation_songs:
-                    viewPager.setCurrentItem(1);
+                    if (viewPager != null) viewPager.setCurrentItem(1);
                     return true;
                 case R.id.navigation_playlist:
-                    viewPager.setCurrentItem(2);
+                    if (viewPager != null) viewPager.setCurrentItem(2);
                     return true;
             }
             return false;
@@ -103,12 +105,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        c = getBaseContext();
+
         audioList = (ArrayList<Audio>) getIntent().getSerializableExtra(LauncherActivity.AUDIO_LIST);
         extractAlbumNPlaylist();
 
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-        navigation.setSelectedItemId(R.id.navigation_songs);
 
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         viewPager.setAdapter(new MainViewPagerAdapter(getSupportFragmentManager()));
@@ -137,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
+        viewPager.setCurrentItem(1);
 
         playlistShuffle = (ImageButton) findViewById(R.id.playlist_shuffle);
         playlistFlow    = (ImageButton) findViewById(R.id.playlist_flow);
@@ -214,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
             }
             if (a.getPlaylists() != null) {
                 for (Playlist p : a.getPlaylists()) {
-                    if (!playlists.contains(p)) {
+                    if (!p.getName().equals("") && !playlists.contains(p)) {
                         playlists.add(p);
                     }
                 }
@@ -243,6 +247,35 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    public static void shufflePlaylist(int pos) {
+        ArrayList<Audio> playingList = playlists.get(pos).getSongs();
+        int index = 0;
+        if (player == null) {
+            setupService(playingList, index);
+        } else {
+            player.play(playingList, index);
+            player.setShuffleMode(AudioMediaPlayer.SHUFFLE);
+        }
+    }
+    public static void flowPlaylist(int pos) {
+        ArrayList<Audio> playingList = playlists.get(pos).getSongs();
+        int index = 0;
+        if (player == null) {
+            setupService(playingList, index);
+        } else {
+            player.play(playingList, index);
+            player.setShuffleMode(AudioMediaPlayer.FLOW);
+        }
+    }
+
+    private static void setupService(ArrayList<Audio> playingList, int index) {
+        Intent playerIntent = new Intent(c, PlayerService.class);
+        playerIntent.putExtra(AudioMediaPlayer.PLAYING_LIST, playingList);
+        playerIntent.putExtra(AudioMediaPlayer.PLAYING_TRACK, index);
+        c.startService(playerIntent);
+        c.bindService(playerIntent, MainActivity.serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     public void createNewPlaylist(View v) {

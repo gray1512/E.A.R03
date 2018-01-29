@@ -38,6 +38,7 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     private ArrayList<Audio> playingList;
     private int currentTrack = 0;
     private boolean playStatus = PLAY;
+    private int currentPosition = 0;
 
     private int repeatMode;
     public static final int REPEAT_ALL = 0;
@@ -154,13 +155,19 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
         this.currentTrack = pos;
         prepareAudio(playingList.get(currentTrack));
     }
-    public void play () {
-        setPlayStatus(PLAY);
-        play();
+    public void playMedia() {
+        if (!isPlaying()) {
+            seekTo(currentPosition);
+            start();
+            setPlayStatus(PLAY);
+        }
     }
-    public void pause() {
-        setPlayStatus(PAUSE);
-        pause();
+    public void pauseMedia() {
+        if (isPlaying()) {
+            pause();
+            currentPosition = getCurrentPosition();
+            setPlayStatus(PAUSE);
+        }
     }
     public void next() {
         play(getNextTrack());

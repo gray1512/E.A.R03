@@ -20,6 +20,7 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.util.ArrayList;
 
+import theboltentertainment.ear03.MainActivity;
 import theboltentertainment.ear03.Objects.Playlist;
 import theboltentertainment.ear03.R;
 import theboltentertainment.ear03.Views.PlayButton;
@@ -41,7 +42,7 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         if (playlists.get(position).getCover() != null) {
             Picasso.with(c).load(new File(playlists.get(position).getCover())).resize(holder.imgSize, holder.imgSize)
                     .centerInside().into(holder.cover);
@@ -50,6 +51,20 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
 
         ArrayAdapter adapter = new ArrayAdapter<>(c, R.layout.textview, playlists.get(position).getDisplaySongs());
         holder.list.setAdapter(adapter);
+
+        holder.shuffle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.shufflePlaylist(position);
+            }
+        });
+        holder.flow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.flowPlaylist(position);
+            }
+        });
+
         holder.setIsRecyclable(false);
     }
 
@@ -179,10 +194,22 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
         private void collapseAnimation() {
             floatFlow = new FlingAnimation(flow, DynamicAnimation.X)
                     .setMinValue(flow.getX()).setMaxValue(flow.getX() + playWidth/2)
-                    .setStartVelocity(500f).setFriction(1.0f);
+                    .setStartVelocity(500f).setFriction(1.0f)
+                    .addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+                        @Override
+                        public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
+                            flow.setVisibility(View.GONE);
+                        }
+                    });
             floatShuffle = new FlingAnimation(shuffle, DynamicAnimation.X)
                     .setMinValue(shuffle.getX() - playWidth/2).setMaxValue(shuffle.getX())
-                    .setStartVelocity(-500f).setFriction(1.0f);
+                    .setStartVelocity(-500f).setFriction(1.0f)
+                    .addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+                        @Override
+                        public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
+                            shuffle.setVisibility(View.GONE);
+                        }
+                    });
             floatFlow.start();
             floatShuffle.start();
 
@@ -191,9 +218,6 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                     .addEndListener(new DynamicAnimation.OnAnimationEndListener() {
                         @Override
                         public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
-                            shuffle.setVisibility(View.GONE);
-                            flow.setVisibility(View.GONE);
-
                             play.setVisibility(View.VISIBLE);
                             cancel.setVisibility(View.GONE);
 

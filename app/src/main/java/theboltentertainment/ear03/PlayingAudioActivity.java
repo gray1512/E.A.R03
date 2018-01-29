@@ -46,7 +46,6 @@ public class PlayingAudioActivity extends AppCompatActivity {
     private SeekBar seekBar;
     private TextView current;
     private TextView duration;
-    private long dura;
     private boolean tracking = false;
 
     private ViewPager viewPager;
@@ -231,13 +230,17 @@ public class PlayingAudioActivity extends AppCompatActivity {
         if (a.getAlbum() != null) getCroppedBitmap(a.getAlbum().getCover());
         else albumCover.setImageResource(R.drawable.ic_dashboard_black_24dp);
 
+        long dur = player.getDuration();
+        seekBar.setMax((int) dur);
+        duration.setText(toMinAndSec(dur));
+        
         PlayingViewPagerAdapter.LyricFragment.notifyDataChange();
         PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
     }
 
     private void setSeekBar() {
-        dura = playingList.get(currentTrack).getLengthInMilSecs();
-        Log.i("Duration", ": " + playingList.get(currentTrack).getLengthInMilSecs());
+        long dura = player.getDuration();
+        Log.i("Duration", ": " + dura);
         seekBar.setMax((int) dura);
         duration.setText(toMinAndSec(dura));
 
@@ -263,16 +266,9 @@ public class PlayingAudioActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                long dur = playingList.get(currentTrack).getLengthInMilSecs();
-                if (dur != dura) {
-                    seekBar.setMax((int) dur);
-                    duration.setText(toMinAndSec(dur));
-                }
                 if (!tracking) {
                     long mCurrentPosition = player.getCurrentPosition();
-                    if(player != null){
-                        seekBar.setProgress((int) mCurrentPosition);
-                    }
+                    seekBar.setProgress((int) mCurrentPosition);
                     current.setText(toMinAndSec(mCurrentPosition));
                 }
                 handler.postDelayed(this, 1000);

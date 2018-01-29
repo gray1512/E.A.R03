@@ -107,9 +107,11 @@ public class FullscreenActivity extends AppCompatActivity {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i("Message", "Playing Audio Received");
             // TODO update view when receive Change Track mess
-            //setupVisualizer();
+            playingList = player.getPlayingList();
+            currentTrack = player.getCurrentTrack();
+
+            setupViews();
         }
     };
 
@@ -135,6 +137,8 @@ public class FullscreenActivity extends AppCompatActivity {
         greenBar = (SeekBar) settingsLayout.findViewById(R.id.green_bar);
         blueBar = (SeekBar) settingsLayout.findViewById(R.id.blue_bar);
         alphaBar = (SeekBar) settingsLayout.findViewById(R.id.alpha_bar);
+
+        mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
 
         bindPlayerService.start();
         registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
@@ -174,17 +178,20 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     private void setupViews() {
+        final Audio a = playingList.get(currentTrack);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (playingList.get(currentTrack).getAlbum() != null) {
+                if (a.getAlbum() != null) {
                     getCroppedBitmap(playingList.get(currentTrack).getAlbum().getCover());
                 }
             }
         }).start();
 
-         mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
-        setupVisualizer();
+        title.setText(a.getTitle());
+        artist.setText(a.getArtist());
+
+        if (mVisualizer == null) setupVisualizer();
     }
 
     private void setupVisualizer() {
