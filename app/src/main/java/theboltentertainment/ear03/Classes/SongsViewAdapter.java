@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -18,6 +17,7 @@ import theboltentertainment.ear03.R;
 public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.ViewHolder> {
     private ArrayList<Audio> audioList;
     private boolean noAddBtn = false;
+    private boolean checkbox = false;
     private Context c;
 
     public ArrayList<Audio> getAudioList() {
@@ -32,10 +32,10 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
 
         ViewHolder(View v) {
             super(v);
-            title = (TextView) v.findViewById(R.id.filter_title);
-            artist = (TextView) v.findViewById(R.id.artist);
-            add = (ImageButton) v.findViewById(R.id.filter_add_playing);
-            menu = (ImageButton) v.findViewById(R.id.filter_menu_button);
+            title = (TextView) v.findViewById(R.id.audio_title);
+            artist = (TextView) v.findViewById(R.id.audio_artist);
+            add = (ImageButton) v.findViewById(R.id.audio_add_playing);
+            menu = (ImageButton) v.findViewById(R.id.audio_menu_button);
         }
     }
 
@@ -64,6 +64,8 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
         viewHolder.artist.setText(artist);
 
         if (noAddBtn) viewHolder.add.setVisibility(View.GONE);
+        if (checkbox) viewHolder.menu.setImageResource(R.drawable.checked);
+        else viewHolder.menu.setImageResource(R.drawable.menu_button);
 
         viewHolder.setIsRecyclable(false);
     }
@@ -71,5 +73,9 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
     @Override
     public int getItemCount() {
         return audioList.size();
+    }
+
+    public void setCheckbox(boolean check) {
+        this.checkbox = check;
     }
 }

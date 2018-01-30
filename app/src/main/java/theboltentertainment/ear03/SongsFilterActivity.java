@@ -86,9 +86,14 @@ public class SongsFilterActivity extends AppCompatActivity {
                             playAudios(position);
 
                         } else if (ACTIVITY.equals(MainActivity.CREATE_PLAYLIST_ACTIVITY)) {
-                            ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.ic_info_black_24dp);
-                            selectedList.add(audioList.get(position));
-                            Toast.makeText(getBaseContext(), audioList.get(position).getTitle(), Toast.LENGTH_SHORT).show();
+                            Audio a = audioList.get(position);
+                            if (!selectedList.contains(a)) {
+                                ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.ic_info_black_24dp);
+                                selectedList.add(a);
+                            } else {
+                                ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.ic_home_black_24dp);
+                                selectedList.remove(a);
+                            }
                         }
                     }
 
@@ -103,7 +108,11 @@ public class SongsFilterActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(serviceConnection);
+        try {
+            unbindService(serviceConnection);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

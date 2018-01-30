@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.os.Binder;
 import android.os.IBinder;
@@ -17,16 +16,9 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
-
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 
 import java.util.ArrayList;
 
-import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.Objects.Audio;
 
 public class PlayerService extends Service implements AudioManager.OnAudioFocusChangeListener {
@@ -70,16 +62,18 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ArrayList<Audio> audioList = (ArrayList<Audio>) intent.getSerializableExtra(AudioMediaPlayer.PLAYING_LIST);
-        int audioIndex = intent.getIntExtra(AudioMediaPlayer.PLAYING_TRACK, -1);
+        int audioIndex = intent.getIntExtra(AudioMediaPlayer.PLAYING_TRACK, 0);
 
-        if (audioIndex == -1 && audioIndex >= audioList.size() && !requestAudioFocus()) {
+        if (!requestAudioFocus()) {
             stopSelf();
         }
 
         if (mediaSessionManager == null) {
             try {
                 initMediaSession();
-                initAudioPlayer(audioList, audioIndex);
+                if (audioList == null) initAudioPlayer();
+                else initAudioPlayer(audioList, audioIndex);
+
             } catch (RemoteException e) {
                 e.printStackTrace();
                 stopSelf();
@@ -239,11 +233,20 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         audioPlayer.play(audioList, index);
         changePlayingStatus();
     }
+    private void initAudioPlayer() {
+        audioPlayer = new AudioMediaPlayer(getBaseContext());
+        changePlayingStatus();
+    }
 
     private void register_playNewAudio() {
         //Register playNewMedia receiver
         IntentFilter filter = new IntentFilter(AudioMediaPlayer.ACTION_RESET_PLAYER);
         registerReceiver(playNewAudio, filter);
+    }
+    private void register_addNewAudio() {
+        //Register playNewMedia receiver
+        IntentFilter filter = new IntentFilter(AudioMediaPlayer.ACTION_UPDATE_PLAYER);
+        registerReceiver(updatePlayerData, filter);
     }
 
     private void register_playAudio() {
@@ -277,13 +280,21 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         @Override
         public void onReceive(Context context, Intent intent) {
             ArrayList audioList = (ArrayList<Audio>) intent.getSerializableExtra(AudioMediaPlayer.PLAYING_LIST);
-            int audioIndex = intent.getIntExtra(AudioMediaPlayer.PLAYING_TRACK, -1);
+            int audioIndex = intent.getIntExtra(AudioMediaPlayer.PLAYING_TRACK, 0);
 
-            if (audioIndex == -1 && audioIndex >= audioList.size()) {
-                stopSelf();
-            }
             audioPlayer.play(audioList, audioIndex);
             changePlayingStatus();
+        }
+    };
+    private BroadcastReceiver updatePlayerData = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Audio a = (Audio) intent.getSerializableExtra(AudioMediaPlayer.NEW_TRACK);
+            ArrayList<Audio> list = (ArrayList<Audio>) intent.getSerializableExtra(AudioMediaPlayer.PLAYING_LIST);
+            if (a != null) audioPlayer.updateDataSet(a);
+            else {
+                audioPlayer.updateDataSet(list);
+            }
         }
     };
     private BroadcastReceiver playAudio = new BroadcastReceiver() {

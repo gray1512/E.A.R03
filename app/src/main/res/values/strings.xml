@@ -6,10 +6,8 @@
     <string name="title_album">Album</string>
     <string name="title_playlist">Playlist</string>
 
-    <string name="title_activity_launcher">LauncherActivity</string>
+    <string name="title_activity_launcher">E.A.R</string>
     <string name="title_activity_songs_filter">SongsFilterActivity</string>
 
     <string name="title_activity_fullscreen">FullscreenActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

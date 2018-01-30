@@ -319,6 +319,48 @@ public class SQLDatabase extends SQLiteOpenHelper {
         }
     }
 
+    public void updatePlaylistsData(Audio a, Playlist playlist) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
+
+        res.moveToFirst();
+        while(!res.isAfterLast()){
+            if (res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA)).equals(a.getData())) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(AUDIO_COLUMN_DATA, a.getData());
+                contentValues.put(AUDIO_COLUMN_TITLE, a.getTitle());
+                contentValues.put(AUDIO_COLUMN_ARTIST, a.getArtist());
+                if (a.getAlbum() != null) {
+                    contentValues.put(AUDIO_COLUMN_ALBUM, a.getAlbum().getName());
+                    contentValues.put(AUDIO_COLUMN_ALBUMARTIST, a.getAlbum().getArtist());
+                    if (a.getAlbum().getCover() == null) contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+                    else contentValues.put((AUDIO_COLUMN_ALBUMCOVER), a.getAlbum().getCover());
+                } else {
+                    contentValues.putNull(AUDIO_COLUMN_ALBUM);
+                    contentValues.putNull(AUDIO_COLUMN_ALBUMARTIST);
+                    contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+                }
+                contentValues.put(AUDIO_COLUMN_LENGTH, a.getLength());
+
+                if (a.getPlaylists() != null) {
+                    String encrypPlaylist = a.getStringPlaylist() + "//" + playlist.getName();
+                    contentValues.put(AUDIO_COLUMN_PLAYLIST, encrypPlaylist);
+                } else {
+                    contentValues.put(AUDIO_COLUMN_PLAYLIST, playlist.getName());
+                }
+
+                if (a.getLyric() != null ) contentValues.put(AUDIO_COLUMN_LYRIC, a.getLyric());
+                else contentValues.putNull(AUDIO_COLUMN_LYRIC);
+
+                db.update(AUDIO_TABLE_NAME, contentValues, AUDIO_COLUMN_DATA + " = ?",
+                        new String[] { a.getData() } );
+                break;
+            }
+            res.moveToNext();
+        }
+        res.close();
+    }
+
     /*public byte[] getAlbumCover(Audio a) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );

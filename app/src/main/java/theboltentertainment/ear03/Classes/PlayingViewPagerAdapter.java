@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -83,6 +84,7 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
 
             adapter = new SongsViewAdapter(PlayingAudioActivity.playingList, true);
             adapter.setHasStableIds(true);
+
             recyclerView.init(true);
             recyclerView.setAdapter(adapter);
         }

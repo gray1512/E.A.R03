@@ -7,10 +7,14 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.MainActivity;
+import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.PlayingAudioActivity;
 import theboltentertainment.ear03.R;
 import theboltentertainment.ear03.Services.AudioMediaPlayer;
@@ -19,6 +23,10 @@ import theboltentertainment.ear03.Services.PlayerService;
 
 public class SongsRecyclerView extends RecyclerView {
     Context c;
+    static boolean checking = false;
+    static SongsViewAdapter adapter;
+
+    static ArrayList<Audio> selectedList;
 
     public SongsRecyclerView(Context context) {
         super(context);
@@ -44,16 +52,25 @@ public class SongsRecyclerView extends RecyclerView {
                 new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        if ((view.findViewById(R.id.filter_add_playing)).isPressed()) {
-                            Toast.makeText(getContext(), "Add Playing List " + MainActivity.audioList.get(position).getTitle(),
-                                    Toast.LENGTH_SHORT).show();
-                            return;
-                        } else if (view.findViewById(R.id.filter_menu_button).isPressed()) {
-                            Toast.makeText(c, "Display options menu for " + MainActivity.audioList.get(position).getTitle(),
-                                    Toast.LENGTH_SHORT).show();
-                            return;
+                        if (!checking) {
+                            if ((view.findViewById(R.id.audio_add_playing)).isPressed()) {
+                                MainActivity.addPlayingList(position);
+                                return;
+                            } else if (view.findViewById(R.id.audio_menu_button).isPressed()) {
+                                MainActivity.displayOptionsMenu(view.findViewById(R.id.audio_menu_button), position);
+                                return;
+                            }
+                            playAudios(position);
+                        } else {
+                            Audio a = ((SongsViewAdapter) getAdapter()).getAudioList().get(position);
+                            if (!selectedList.contains(a)) {
+                                ((ImageButton) view.findViewById(R.id.audio_menu_button)).setImageResource(R.drawable.play);
+                                selectedList.add(a);
+                            } else {
+                                ((ImageButton) view.findViewById(R.id.audio_menu_button)).setImageResource(R.drawable.menu_button);
+                                selectedList.remove(a);
+                            }
                         }
-                        playAudios(position);
                     }
                     @Override
                     public void onItemLongClick(View view, int position) {
@@ -62,6 +79,27 @@ public class SongsRecyclerView extends RecyclerView {
                         }
                     }
                 }));
+    }
+
+    @Override
+    public void setAdapter(Adapter a) {
+        super.setAdapter(a);
+        adapter = (SongsViewAdapter) a;
+    }
+
+    public static void setChecking(boolean check) {
+        checking = check;
+        selectedList = new ArrayList<>();
+        adapter.setCheckbox(check);
+        adapter.notifyDataSetChanged();
+    }
+
+    public static boolean getChecking() {
+        return checking;
+    }
+
+    public static ArrayList<Audio> getSelectedList() {
+        return selectedList;
     }
 
     private void playAudios (int index) {

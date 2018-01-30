@@ -2,10 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/edit_btn"
+        android:id="@+id/feature_btn"
         android:icon="@drawable/edit"
         android:title="Edit lyric"
-        app:showAsAction="always" />
+        app:showAsAction="always"
+        android:visible="false"/>
 
 
     <item

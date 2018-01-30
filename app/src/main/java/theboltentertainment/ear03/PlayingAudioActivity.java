@@ -38,6 +38,7 @@ import theboltentertainment.ear03.Classes.PlayingViewPagerAdapter;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
+import theboltentertainment.ear03.Views.SongsRecyclerView;
 
 public class PlayingAudioActivity extends AppCompatActivity {
     public static ArrayList<Audio> playingList;
@@ -53,8 +54,14 @@ public class PlayingAudioActivity extends AppCompatActivity {
     private TextView title;
     private TextView artist;
 
+    private ImageView tab0, tab1;
+
+    private ImageButton playBtn;
+    private ImageButton shuffleBtn;
+    private ImageButton repeatBtn;
+
     private MenuItem fullscreenMode;
-    private MenuItem editBtn;
+    private MenuItem featureBtn;
 
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
     private ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
@@ -93,6 +100,30 @@ public class PlayingAudioActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playing_audio);
 
+        LayoutInflater inflator = (LayoutInflater) this .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflator.inflate(R.layout.playing_actionbar, null);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowCustomEnabled(true);
+        getSupportActionBar().setCustomView(v, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        title = (TextView) v.findViewById(R.id.playing_title);
+        artist = (TextView) v.findViewById(R.id.playing_artist);
+
+        tab0 = (ImageView) findViewById(R.id.tab0);
+        tab1 = (ImageView) findViewById(R.id.tab1);
+
+        viewPager = (ViewPager) findViewById(R.id.playing_viewpager);
+
+        playBtn = (ImageButton) findViewById(R.id.playing_playbtn);
+        shuffleBtn = (ImageButton) findViewById(R.id.playing_shuffle);
+        repeatBtn = (ImageButton) findViewById(R.id.playing_repeat);
+        albumCover = (ImageView) findViewById(R.id.playing_album);
+
+        seekBar = (SeekBar) findViewById(R.id.playing_seekbar);
+        current = (TextView) findViewById(R.id.playing_timer);
+        duration = (TextView) findViewById(R.id.playing_duration);
+
         bindService(new Intent(getBaseContext(), PlayerService.class),
                 serviceConnection, Context.BIND_AUTO_CREATE);
         registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
@@ -118,7 +149,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.playing_actionbar, menu);
 
-        editBtn = menu.getItem(0);
+        featureBtn = menu.getItem(0);
         fullscreenMode = menu.getItem(1);
 
         if (serviceBound) fullscreenMode.setVisible(true);
@@ -133,8 +164,20 @@ public class PlayingAudioActivity extends AppCompatActivity {
                 this.finish();
                 break;
             }
-            case R.id.edit_btn: {
-                PlayingViewPagerAdapter.LyricFragment.editLyric(item);
+            case R.id.feature_btn: {
+                if (viewPager.getCurrentItem() == 0) {
+                    // TODO get checked list and remove of playing list, notifydataset then
+                    if (!SongsRecyclerView.getChecking()) {
+                        SongsRecyclerView.setChecking(true);
+                    } else {
+                        ArrayList<Audio> removeList = SongsRecyclerView.getSelectedList();
+                        SongsRecyclerView.setChecking(false);
+                        removeSongsFromPlaylingList(removeList);
+                    }
+                }
+                else if (viewPager.getCurrentItem() == 1) {
+                    PlayingViewPagerAdapter.LyricFragment.editLyric(item);
+                }
                 break;
             }
             case R.id.fullscreen: {
@@ -148,22 +191,9 @@ public class PlayingAudioActivity extends AppCompatActivity {
     }
 
     private void setupViews() {
-        LayoutInflater inflator = (LayoutInflater) this .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflator.inflate(R.layout.playing_actionbar, null);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-        getSupportActionBar().setCustomView(v, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        title = (TextView) v.findViewById(R.id.playing_title);
-        artist = (TextView) v.findViewById(R.id.playing_artist);
         title.setText(playingList.get(currentTrack).getTitle());
         artist.setText(playingList.get(currentTrack).getArtist());
 
-        final ImageView tab0 = (ImageView) findViewById(R.id.tab0);
-        final ImageView tab1 = (ImageView) findViewById(R.id.tab1);
-
-        viewPager = (ViewPager) findViewById(R.id.playing_viewpager);
         viewPager.setAdapter(new PlayingViewPagerAdapter(getSupportFragmentManager()));
         viewPager.setCurrentItem(1, true);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -178,14 +208,14 @@ public class PlayingAudioActivity extends AppCompatActivity {
                         tab0.setImageResource(R.drawable.tab2_icon);
                         tab1.setImageResource(R.drawable.tab_icon);
 
-                        editBtn.setVisible(false);
+                        featureBtn.setIcon(R.drawable.scan);
                         break;
                     }
                     case 1: {
                         tab0.setImageResource(R.drawable.tab_icon);
                         tab1.setImageResource(R.drawable.tab3_icon);
 
-                        editBtn.setVisible(true);
+                        featureBtn.setIcon(R.drawable.edit);
                         break;
                     }
                 }
@@ -195,27 +225,21 @@ public class PlayingAudioActivity extends AppCompatActivity {
             public void onPageScrollStateChanged(int state) { }
         });
 
-        ImageButton playBtn = (ImageButton) findViewById(R.id.playing_playbtn);
         if (player.checkPlayStatus()) playBtn.setImageResource(R.drawable.pause);
         else playBtn.setImageResource(R.drawable.play);
 
-        ImageButton shuffleBtn = (ImageButton) findViewById(R.id.playing_shuffle);
         if (player.getShuffleMode()) shuffleBtn.setImageResource(R.drawable.shuffle);
         else shuffleBtn.setImageResource(R.drawable.shuffle_off);
 
-        ImageButton repeatBtn = (ImageButton) findViewById(R.id.playing_repeat);
         if (player.getRepeatMode() == AudioMediaPlayer.REPEAT_ALL) repeatBtn.setImageResource(R.drawable.repeat);
         else if (player.getRepeatMode() == AudioMediaPlayer.REPEAT_ONE) repeatBtn.setImageResource(R.drawable.replay);
         else repeatBtn.setImageResource(R.drawable.play_once);
 
-        albumCover = (ImageView) findViewById(R.id.playing_album);
         if (playingList.get(currentTrack).getAlbum() != null) {
             getCroppedBitmap(playingList.get(currentTrack).getAlbum().getCover());
         }
 
-        seekBar = (SeekBar) findViewById(R.id.playing_seekbar);
-        current = (TextView) findViewById(R.id.playing_timer);
-        duration = (TextView) findViewById(R.id.playing_duration);
+        featureBtn.setVisible(true);
         setSeekBar();
         setFullscreenMode();
     }
@@ -233,14 +257,13 @@ public class PlayingAudioActivity extends AppCompatActivity {
         long dur = player.getDuration();
         seekBar.setMax((int) dur);
         duration.setText(toMinAndSec(dur));
-        
+
         PlayingViewPagerAdapter.LyricFragment.notifyDataChange();
         PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
     }
 
     private void setSeekBar() {
         long dura = player.getDuration();
-        Log.i("Duration", ": " + dura);
         seekBar.setMax((int) dura);
         duration.setText(toMinAndSec(dura));
 
@@ -384,5 +407,14 @@ public class PlayingAudioActivity extends AppCompatActivity {
                 break;
             }
         }
+    }
+
+    private void removeSongsFromPlaylingList(ArrayList<Audio> remove) {
+        playingList.removeAll(remove);
+        PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
+
+        Intent broadcastIntent = new Intent(AudioMediaPlayer.ACTION_UPDATE_PLAYER);
+        broadcastIntent.putExtra(AudioMediaPlayer.PLAYING_LIST, remove);
+        sendBroadcast(broadcastIntent);
     }
 }

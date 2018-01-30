@@ -21,6 +21,7 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
 
     public static final String PLAYING_LIST = "Playing list";
     public static final String PLAYING_TRACK = "Playing track";
+    public static final String NEW_TRACK = "New track";
 
     public static final String ACTION_RESET_PLAYER = "Play new list and new track";
     public static final String ACTION_PLAY = "Play";
@@ -174,6 +175,32 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     }
     public void previous() {
         play(getPreviousTrack());
+    }
+
+    public void updateDataSet(Audio a) {
+        if (playingList == null) {
+            playingList = new ArrayList<>();
+        }
+        playingList.add(a);
+    }
+    public void updateDataSet(final ArrayList<Audio> remove_list) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (remove_list.contains(playingList.get(currentTrack))) {
+                    pauseMedia();
+                    playingList.removeAll(remove_list);
+                    if (currentTrack < playingList.size()) play(currentTrack);
+                    else {
+                        currentTrack = 0;
+                        play(currentTrack);
+                    }
+                } else {
+                    playingList.removeAll(remove_list);
+                            currentTrack = playingList.indexOf(playingList.get(currentTrack));
+                        }
+                    }
+        }).start();
     }
 
     private void prepareAudio (Audio a) {

@@ -132,7 +132,7 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
 
     public static class PlaylistFragment extends Fragment {
         Context c;
-        PlaylistsViewAdapter adapter;
+        static PlaylistsViewAdapter adapter;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -165,6 +165,9 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
             return v;
         }
 
+        public static void notifyDataSetChange() {
+            adapter.notifyDataSetChanged();
+        }
 
         public static PlaylistFragment newInstance() {
             return new PlaylistFragment();

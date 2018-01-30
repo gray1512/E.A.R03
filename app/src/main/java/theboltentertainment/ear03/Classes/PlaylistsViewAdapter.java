@@ -154,7 +154,9 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                 collapse = new PlayButton.ScaleWidthAnimator(play, playWidth, playHeight, 200);
                 collapse.setAnimationListener(new Animation.AnimationListener() {
                     @Override
-                    public void onAnimationStart(Animation animation) { }
+                    public void onAnimationStart(Animation animation) {
+                        play.setOnClickListener(null);
+                    }
 
                     @Override
                     public void onAnimationEnd(Animation animation) {
@@ -166,20 +168,34 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
 
                         floatFlow = new FlingAnimation(flow, DynamicAnimation.X)
                                 .setMinValue(flow.getX() - playWidth/2).setMaxValue(flow.getX())
-                                .setStartVelocity(-500f).setFriction(1.0f);
+                                .setStartVelocity(-500f).setFriction(1.0f).addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+                                    @Override
+                                    public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
+                                        cancel.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                collapseAnimation();
+                                            }
+                                        });
+                                    }
+                                });
                         floatShuffle = new FlingAnimation(shuffle, DynamicAnimation.X)
                                 .setMinValue(shuffle.getX()).setMaxValue(shuffle.getX() + playWidth/2)
-                                .setStartVelocity(500f).setFriction(1.0f);
+                                .setStartVelocity(500f).setFriction(1.0f).addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+                                    @Override
+                                    public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
+                                        cancel.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                collapseAnimation();
+                                            }
+                                        });
+                                    }
+                                });
 
                         floatShuffle.start();
                         floatFlow.start();
 
-                        cancel.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                collapseAnimation();
-                            }
-                        });
                     }
 
                     @Override
@@ -192,6 +208,7 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
         }
 
         private void collapseAnimation() {
+            cancel.setOnClickListener(null);
             floatFlow = new FlingAnimation(flow, DynamicAnimation.X)
                     .setMinValue(flow.getX()).setMaxValue(flow.getX() + playWidth/2)
                     .setStartVelocity(500f).setFriction(1.0f)
@@ -210,8 +227,6 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                             shuffle.setVisibility(View.GONE);
                         }
                     });
-            floatFlow.start();
-            floatShuffle.start();
 
             new FlingAnimation(cancel, DynamicAnimation.ROTATION).setStartVelocity(-1100f)
                     .setFriction(2f)
@@ -221,9 +236,12 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                             play.setVisibility(View.VISIBLE);
                             cancel.setVisibility(View.GONE);
 
+                            floatFlow.start();
+                            floatShuffle.start();
                             play.startAnimation(expand);
                         }
                     }).start();
+
         }
     }
 }
