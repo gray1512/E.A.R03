@@ -26,7 +26,9 @@ import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Objects.Playlist;
+import theboltentertainment.ear03.Views.SongItemView;
 
+import static theboltentertainment.ear03.MainActivity.player;
 import static theboltentertainment.ear03.MainActivity.serviceConnection;
 import static theboltentertainment.ear03.Services.AudioMediaPlayer.PLAYING_LIST;
 
@@ -51,7 +53,7 @@ public class SongsFilterActivity extends AppCompatActivity {
 
         audioList = (ArrayList<Audio>) getIntent().getSerializableExtra(MainActivity.AUDIOLIST);
         ArrayList<Album> albumList    = (ArrayList<Album>) getIntent().getSerializableExtra(MainActivity.ALBUMLIST);
-        ArrayList<Playlist> playlists = (ArrayList<Playlist>) getIntent().getSerializableExtra(MainActivity.PLAYLISTS);
+        final ArrayList<Playlist> playlists = (ArrayList<Playlist>) getIntent().getSerializableExtra(MainActivity.PLAYLISTS);
         ACTIVITY = getIntent().getStringExtra(MainActivity.ACTIVITY_FLAG);
 
         recyclerView = (RecyclerView) findViewById(R.id.filter_view);
@@ -83,15 +85,23 @@ public class SongsFilterActivity extends AppCompatActivity {
                     public void onItemClick(View view, int position) {
                         if (ACTIVITY.equals(MainActivity.SEARCH_ACTIVITY)) {
                             // play music
+                            if ((view.findViewById(R.id.filter_btn0)).isPressed()) {
+                                ((SongItemView) view).addPlayingList(player, position, audioList);
+                                return;
+                            } else if (view.findViewById(R.id.filter_btn1).isPressed()) {
+                                ((SongItemView) view).displayOptionsMenu(position,
+                                        audioList, playlists);
+                                return;
+                            }
                             playAudios(position);
 
                         } else if (ACTIVITY.equals(MainActivity.CREATE_PLAYLIST_ACTIVITY)) {
                             Audio a = audioList.get(position);
                             if (!selectedList.contains(a)) {
-                                ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.ic_info_black_24dp);
+                                ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.checkbox);
                                 selectedList.add(a);
                             } else {
-                                ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.ic_home_black_24dp);
+                                ((ImageButton) view.findViewById(R.id.filter_btn1)).setImageResource(R.drawable.blank_checkbox);
                                 selectedList.remove(a);
                             }
                         }

@@ -3,17 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/navigation_album"
-        android:icon="@drawable/ic_dashboard_black_24dp"
-        android:title="@string/title_album"/>
+        android:icon="@drawable/album"
+        android:title="@string/title_album"
+        app:showAsAction="always"/>
 
     <item
         android:id="@+id/navigation_songs"
-        android:icon="@drawable/ic_home_black_24dp"
-        android:title="@string/title_songs" />
+        android:icon="@drawable/songs"
+        android:title="@string/title_songs"
+        app:showAsAction="always"/>
 
     <item
         android:id="@+id/navigation_playlist"
-        android:icon="@drawable/ic_notifications_black_24dp"
-        android:title="@string/title_playlist"/>
+        android:icon="@drawable/playlist"
+        android:title="@string/title_playlist"
+        app:showAsAction="always"/>
 
 </menu>

@@ -90,4 +90,12 @@ public class Audio implements Serializable {
     public String getLyric() { return this.lyric; }
 
     public void setLyric(String lyr) { this.lyric = lyr; }
+
+    @Override
+    public boolean equals(Object obj) {
+        Audio a2 = (Audio) obj;
+        return this.getData().equals(a2.getData());
+    }
+
+
 }

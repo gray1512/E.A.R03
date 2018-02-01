@@ -1,6 +1,7 @@
 package theboltentertainment.ear03.Classes;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -17,7 +18,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import theboltentertainment.ear03.AlbumActivity;
 import theboltentertainment.ear03.MainActivity;
+import theboltentertainment.ear03.PlaylistActivity;
 import theboltentertainment.ear03.R;
 import theboltentertainment.ear03.Views.RecyclerItemClickListener;
 import theboltentertainment.ear03.Views.SongsRecyclerView;

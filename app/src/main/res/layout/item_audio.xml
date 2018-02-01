@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<theboltentertainment.ear03.Views.SongItemView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,7 +7,7 @@
     android:layout_marginEnd="5dp"
     android:layout_marginStart="5dp"
     android:layout_marginTop="5dp"
-    android:background="@drawable/item_border"
+    android:background="@drawable/border_audio"
     android:paddingBottom="5dp"
     android:paddingLeft="10dp"
     android:paddingRight="8dp"
@@ -50,6 +50,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/audio_add_playing"
         app:layout_constraintTop_toBottomOf="@+id/filter_title"
+        app:layout_constraintVertical_bias="0.25"
         tools:ignore="Deprecated,RtlHardcoded,SpUsage"
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1" />
@@ -57,7 +58,7 @@
     <ImageButton
         android:id="@+id/audio_add_playing"
         android:layout_width="36dp"
-        android:layout_height="48dp"
+        android:layout_height="0dp"
         android:background="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/audio_menu_button"
@@ -67,7 +68,7 @@
     <ImageButton
         android:id="@+id/audio_menu_button"
         android:layout_width="36dp"
-        android:layout_height="48dp"
+        android:layout_height="0dp"
         android:background="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -75,4 +76,4 @@
         app:srcCompat="@drawable/menu_button"
         tools:ignore="ContentDescription,RtlHardcoded" />
 
-</android.support.constraint.ConstraintLayout>
+</theboltentertainment.ear03.Views.SongItemView>

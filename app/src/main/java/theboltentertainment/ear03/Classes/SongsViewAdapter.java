@@ -12,6 +12,7 @@ import java.util.ArrayList;
 
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.R;
+import theboltentertainment.ear03.Views.SongItemView;
 
 
 public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.ViewHolder> {
@@ -25,6 +26,8 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
+        SongItemView view;
+
         TextView title;
         TextView artist;
         ImageButton add;
@@ -32,14 +35,17 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
 
         ViewHolder(View v) {
             super(v);
+            view = (SongItemView) v;
             title = (TextView) v.findViewById(R.id.audio_title);
             artist = (TextView) v.findViewById(R.id.audio_artist);
             add = (ImageButton) v.findViewById(R.id.audio_add_playing);
             menu = (ImageButton) v.findViewById(R.id.audio_menu_button);
+
+            view.init(title, artist, add, menu);
         }
     }
 
-    SongsViewAdapter(ArrayList<Audio> list) {
+    public SongsViewAdapter(ArrayList<Audio> list) {
         this.audioList = list;
     }
     SongsViewAdapter(ArrayList<Audio> list, boolean noAddBtn) {
@@ -64,7 +70,7 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
         viewHolder.artist.setText(artist);
 
         if (noAddBtn) viewHolder.add.setVisibility(View.GONE);
-        if (checkbox) viewHolder.menu.setImageResource(R.drawable.checked);
+        if (checkbox) viewHolder.menu.setImageResource(R.drawable.blank_checkbox);
         else viewHolder.menu.setImageResource(R.drawable.menu_button);
 
         viewHolder.setIsRecyclable(false);

@@ -28,7 +28,7 @@
         app:fabSize="normal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_add" />
+        app:srcCompat="@drawable/checked" />
 
     <EditText
         android:id="@+id/filter_name"
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="32dp"
         android:layout_marginStart="16dp"
-        android:background="@drawable/edit_border"
+        android:background="@drawable/border_playlist"
         android:hint="Enter your playlist name"
         android:maxLines="1"
         android:paddingEnd="24dp"

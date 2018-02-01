@@ -4,11 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import theboltentertainment.ear03.Objects.Audio;
 
@@ -36,6 +37,8 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     public static final boolean PAUSE = false;
     public static final String CHANGE_TRACK_DATA = "Change track data";
 
+    public static final String EMPTY = "Empty playing list";
+
     private ArrayList<Audio> playingList;
     private int currentTrack = 0;
     private boolean playStatus = PLAY;
@@ -52,7 +55,7 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
 
 
     public int getRepeatMode() {
-        return repeatMode;
+        return this.repeatMode;
     }
 
     public void setRepeatMode(int repeatMode) {
@@ -64,7 +67,26 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     }
 
     public void setShuffleMode(boolean shuffleMode) {
+        setShuffleMode(shuffleMode, 0);
+    }
+    public void setShuffleMode(boolean shuffleMode, int pos) {
         this.shuffleMode = shuffleMode;
+        Audio current = playingList.get(pos);
+
+        if(shuffleMode) {
+            playingList.remove(pos);
+            Collections.shuffle(playingList);
+            playingList.add(pos, current);
+        } else {
+            Collections.sort(playingList, new Comparator<Audio>() {
+                @Override
+                public int compare(Audio a1, Audio a2) {
+                    return a1.getTitle().trim().compareTo(a2.getTitle().trim());
+                }
+            });
+            currentTrack = playingList.indexOf(current);
+        }
+        sendNoti();
     }
 
     public boolean checkPlayStatus() {
@@ -72,7 +94,10 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     }
 
     public void setPlayStatus(boolean playStatus) {
-        this.playStatus = playStatus;
+        if (playStatus != this.playStatus) {
+            this.playStatus = playStatus;
+            changePlayingStatus();
+        }
     }
 
     public ArrayList<Audio> getPlayingList() {
@@ -98,6 +123,8 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
         setOnInfoListener(this);
         setOnPreparedListener(this);
         setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        this.playingList = new ArrayList<>();
     }
 
     @Override
@@ -107,10 +134,7 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        if (getRepeatMode() != REPEAT_ONE) prepareAudio(playingList.get(getNextTrack()));
-        else {
-            seekTo(0);
-        }
+        playNextTrack();
     }
 
     @Override
@@ -137,6 +161,7 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     @Override
     public void onPrepared(MediaPlayer mp) {
         start();
+        sendNoti();
         setPlayStatus(PLAY);
     }
 
@@ -146,9 +171,10 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
     }
 
     public void play (ArrayList<Audio> audios, int pos) {
-        this.playingList = audios;
+        this.playingList.clear();
+        this.playingList.addAll(audios);
         this.currentTrack = pos;
-        setShuffleMode(SHUFFLE);
+        setShuffleMode(SHUFFLE, pos);
         setRepeatMode(REPEAT_ALL);
         prepareAudio(playingList.get(currentTrack));
     }
@@ -164,17 +190,17 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
         }
     }
     public void pauseMedia() {
-        if (isPlaying()) {
-            pause();
+        if (checkPlayStatus()) {
             currentPosition = getCurrentPosition();
+            pause();
             setPlayStatus(PAUSE);
         }
     }
     public void next() {
-        play(getNextTrack());
+        playNextTrack();
     }
     public void previous() {
-        play(getPreviousTrack());
+        playPreviousTrack();
     }
 
     public void updateDataSet(Audio a) {
@@ -187,18 +213,27 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (remove_list.contains(playingList.get(currentTrack))) {
+                Audio current = playingList.get(currentTrack);
+                if (remove_list.contains(current)) {
                     pauseMedia();
                     playingList.removeAll(remove_list);
+
+                    if (playingList.size() == 0) {
+                        c.sendBroadcast(new Intent(EMPTY));
+                        stop();
+                        return;
+                    }
                     if (currentTrack < playingList.size()) play(currentTrack);
                     else {
-                        currentTrack = 0;
+                        currentTrack = playingList.size() - 1;
                         play(currentTrack);
                     }
                 } else {
+                    Audio a = playingList.get(currentTrack);
                     playingList.removeAll(remove_list);
-                            currentTrack = playingList.indexOf(playingList.get(currentTrack));
-                        }
+                    currentTrack = playingList.indexOf(a);
+                }
+                sendNoti();
                     }
         }).start();
     }
@@ -208,9 +243,13 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
             reset();
             setDataSource(a.getData());
             prepareAsync();
-            sendNoti();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (IllegalStateException e) {
+            Intent i = new Intent(ACTION_RESET_PLAYER);
+            i.putExtra(PLAYING_LIST, playingList);
+            i.putExtra(PLAYING_TRACK, currentTrack);
+            c.sendBroadcast(i);
         }
     }
 
@@ -219,30 +258,34 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
         c.sendBroadcast(broadcastIntent);
     }
 
-    private int getNextTrack() {
+    private void changePlayingStatus() {
+        Intent broadcastIntent = new Intent(AudioMediaPlayer.CHANGE_PLAYING_STATUS);
+        c.sendBroadcast(broadcastIntent);
+    }
+
+    private void playNextTrack() {
+        Log.e("Repeat Mode", " " +getRepeatMode());
         if (getRepeatMode() == REPEAT_ALL) {
             if (currentTrack < playingList.size() - 1) {
                 currentTrack++;
             } else {
                 currentTrack = 0;
             }
-        } else {
-            if (currentTrack == playingList.size() - 1) setPlayStatus(PAUSE);
-            else currentTrack++;
+        } else if (getRepeatMode() == REPEAT_OFF){
+            if (currentTrack == playingList.size() - 1) {
+                seekTo(0);
+                pauseMedia();
+                return;
+            } else currentTrack++;
         }
-        return currentTrack;
+        play(currentTrack);
     }
-    private int getPreviousTrack() {
-        if (getRepeatMode() == REPEAT_ALL) {
-            if (currentTrack == 0) {
-                currentTrack = playingList.size() - 1;
-            } else {
-                currentTrack --;
-            }
+    private void playPreviousTrack() {
+        if (currentTrack == 0) {
+            currentTrack = playingList.size() - 1;
         } else {
-            if (currentTrack == 0) setPlayStatus(PAUSE);
-            else currentTrack--;
+            currentTrack --;
         }
-        return currentTrack;
+        play(currentTrack);
     }
 }

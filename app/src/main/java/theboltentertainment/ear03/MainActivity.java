@@ -12,30 +12,15 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.PopupWindow;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import theboltentertainment.ear03.Classes.SQLDatabase;
-import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Classes.MainViewPagerAdapter;
@@ -68,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MenuItem playingItem;
 
-    private static AudioMediaPlayer player;
+    public static AudioMediaPlayer player;
     public static boolean serviceBound = false; // the status of the Service, bound or not to the activity.
     public static ServiceConnection serviceConnection = new ServiceConnection() { //Binding this Client to the AudioPlayer Service
         @Override
@@ -106,12 +91,17 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver changeTrackAndStatus = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i("Message", "Received");
             if (!playingItem.isVisible()) playingItem.setVisible(true);
-            // TODO set different icon with animation depend on stt value
+        }
+    };
+    private BroadcastReceiver emptyPlayer = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (playingItem != null) playingItem.setVisible(false);
         }
     };
 
@@ -121,6 +111,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         c = getBaseContext();
+
+        getSupportActionBar().setTitle(getResources().getString(R.string.app_name));
 
         audioList = (ArrayList<Audio>) getIntent().getSerializableExtra(LauncherActivity.AUDIO_LIST);
         extractAlbumNPlaylist();
@@ -160,7 +152,9 @@ public class MainActivity extends AppCompatActivity {
         playlistShuffle = (ImageButton) findViewById(R.id.playlist_shuffle);
         playlistFlow    = (ImageButton) findViewById(R.id.playlist_flow);
 
-        registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
+        registerReceiver(changeTrackAndStatus, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
+        registerReceiver(changeTrackAndStatus, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
+        registerReceiver(emptyPlayer, new IntentFilter(AudioMediaPlayer.EMPTY));
     }
 
     @Override
@@ -182,13 +176,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mMessageReceiver);
+        unregisterReceiver(changeTrackAndStatus);
+        unregisterReceiver(emptyPlayer);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
+        registerReceiver(changeTrackAndStatus, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
+        registerReceiver(changeTrackAndStatus, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
+        registerReceiver(emptyPlayer, new IntentFilter(AudioMediaPlayer.EMPTY));
     }
 
     @Override
@@ -252,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void getPlaylistsData() {
+    private void getPlaylistsData () {
         if (playlists != null) {
             for (Playlist pl : playlists) {
                 for (Audio a : audioList) {
@@ -268,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Audio> playingList = playlists.get(pos).getSongs();
         int index = 0;
         if (player == null) {
-            setupService(playingList, index);
+            setupService(c, playingList, index);
         } else {
             player.play(playingList, index);
             player.setShuffleMode(AudioMediaPlayer.SHUFFLE);
@@ -278,121 +275,19 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Audio> playingList = playlists.get(pos).getSongs();
         int index = 0;
         if (player == null) {
-            setupService(playingList, index);
+            setupService(c, playingList, index);
         } else {
             player.play(playingList, index);
             player.setShuffleMode(AudioMediaPlayer.FLOW);
         }
     }
 
-    private static void setupService(ArrayList<Audio> playingList, int index) {
+    private static void setupService(Context c, ArrayList<Audio> playingList, int index) {
         Intent playerIntent = new Intent(c, PlayerService.class);
         playerIntent.putExtra(AudioMediaPlayer.PLAYING_LIST, playingList);
         playerIntent.putExtra(AudioMediaPlayer.PLAYING_TRACK, index);
         c.startService(playerIntent);
         c.bindService(playerIntent, MainActivity.serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-    static void setupService() {
-        Intent playerIntent = new Intent(c, PlayerService.class);
-        c.startService(playerIntent);
-        c.bindService(playerIntent, MainActivity.serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    public static void displayOptionsMenu (final View v, final int pos) {
-        try {
-            LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View layout = inflater.inflate(R.layout.song_options_menu, null);
-
-            final PopupWindow pw = new PopupWindow(layout, 350,
-                    ViewGroup.LayoutParams.WRAP_CONTENT, true);
-            pw.setOutsideTouchable(true);
-            pw.setFocusable(true);
-            pw.setBackgroundDrawable(c.getResources().getDrawable(R.drawable.item_border));
-            pw.showAsDropDown(v, -300, 0);
-
-            Button addPlaylist = (Button) layout.findViewById(R.id.add_playlist);
-            Button delete = (Button) layout.findViewById(R.id.delete);
-            addPlaylist.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    displayPlaylistsList(v, audioList.get(pos));
-                    pw.dismiss();
-                }
-            });
-            delete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // delete
-                    pw.dismiss();
-                }
-            });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void displayPlaylistsList(View v, final Audio a) {
-        try {
-            LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View layout = inflater.inflate(R.layout.playlists_dialog, null);
-
-            final PopupWindow pw = new PopupWindow(layout, 450,
-                    400, true);
-            pw.setOutsideTouchable(true);
-            pw.setFocusable(true);
-            pw.setBackgroundDrawable(c.getResources().getDrawable(R.drawable.item_border));
-            pw.showAsDropDown(v, -300, 0);
-
-            final LinearLayout list = (LinearLayout) layout.findViewById(R.id.dialog_list);
-            if (playlists.size() == 0) {
-                TextView empty = new TextView(c);
-                empty.setText("Create new playlist to add");
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                list.addView(empty, params);
-            } else {
-                for (int i = 0; i < playlists.size(); i++) {
-                    CheckBox checkBox = new CheckBox(c);
-                    checkBox.setText(playlists.get(i).getName());
-                    checkBox.setMaxLines(1);
-                    checkBox.setEllipsize(TextUtils.TruncateAt.END);
-                    LinearLayout.LayoutParams checkParams = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                    checkParams.gravity = Gravity.CENTER;
-                    list.addView(checkBox, checkParams);
-                }
-            }
-
-            Button ok = (Button) layout.findViewById(R.id.dialog_ok);
-            ok.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // save data into playlist
-                    SQLDatabase db = new SQLDatabase(c);
-                    for (int i = 0; i < playlists.size(); i++) {
-                        if (((CheckBox) list.getChildAt(i)).isChecked()) {
-                            // TODO check if playlist has song yet, if yes, display Toast mess
-                            playlists.get(i).addSong(a);
-                            db.updatePlaylistsData(a, playlists.get(i));
-                        }
-                    }
-                    db.close();
-                    MainViewPagerAdapter.PlaylistFragment.notifyDataSetChange();
-                    pw.dismiss();
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public static void addPlayingList (int pos) {
-        if (player == null) {
-            setupService();
-        }
-        Intent broadcastIntent = new Intent(AudioMediaPlayer.ACTION_UPDATE_PLAYER);
-        broadcastIntent.putExtra(AudioMediaPlayer.NEW_TRACK, audioList.get(pos));
-        c.sendBroadcast(broadcastIntent);
     }
 
     public void createNewPlaylist(View v) {

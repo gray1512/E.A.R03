@@ -59,7 +59,7 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
     }
 
     public static class PlayingListFragment extends Fragment {
-        private Context c;
+        private static Context c;
         private static ProgressBar progressBar;
         private static SongsRecyclerView recyclerView;
         private static SongsViewAdapter adapter;
@@ -99,6 +99,7 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
         }
 
         public static void notifyDataChange() {
+            recyclerView.removeAllViews();
             adapter.notifyDataSetChanged();
         }
     }
@@ -276,7 +277,7 @@ public class PlayingViewPagerAdapter extends FragmentPagerAdapter {
                                             try {
                                                 lyr = httpClient.execute(httpLyr, resHandler);
 
-                                            } catch (IOException e) {
+                                            } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
                                             String lyr1, lyr2;

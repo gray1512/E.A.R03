@@ -69,7 +69,7 @@ public class FilterViewAdapter extends RecyclerView.Adapter<FilterViewAdapter.Vi
             viewHolder.info.setText(audioList.get(position).getArtist());
             if (checkbox) {
                 viewHolder.btn0.setVisibility(View.GONE);
-                viewHolder.btn1.setImageResource(R.drawable.ic_home_black_24dp);
+                viewHolder.btn1.setImageResource(R.drawable.blank_checkbox);
             }
 
         } else if (position < audioList.size() + albumList.size()) {

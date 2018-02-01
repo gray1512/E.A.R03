@@ -7,7 +7,7 @@
     android:layout_marginLeft="5dp"
     android:layout_marginRight="5dp"
     android:layout_marginTop="8dp"
-    android:background="@drawable/item_border"
+    android:background="@drawable/border_audio"
     android:padding="5dp">
 
     <ImageView
@@ -40,8 +40,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
-        android:background="@drawable/edit_border"
-        android:divider="@color/colorText"
+        android:background="@drawable/border_playlist"
         android:padding="2dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/playlist_cover"
@@ -51,9 +50,10 @@
         android:id="@+id/playlist_play"
         android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/button_border"
+        android:background="@drawable/border_play_button"
         android:onClick="playlistOptions"
         android:text="Play"
+        android:textColor="@color/colorText"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/playlist_list"
@@ -64,7 +64,7 @@
         android:id="@+id/playlist_shuffle"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="@drawable/button_border"
+        android:background="@drawable/border_play_button"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/playlist_list"
@@ -76,7 +76,7 @@
         android:id="@+id/playlist_flow"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="@drawable/button_border"
+        android:background="@drawable/border_play_button"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/playlist_list"
@@ -88,11 +88,11 @@
         android:id="@+id/playlist_cancel"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="@drawable/button_border"
+        android:background="@drawable/border_play_button"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/playlist_list"
         app:layout_constraintStart_toStartOf="@+id/playlist_list"
         app:layout_constraintTop_toBottomOf="@id/playlist_list"
-        app:srcCompat="@drawable/checked" />
+        app:srcCompat="@drawable/exit" />
 </android.support.constraint.ConstraintLayout>

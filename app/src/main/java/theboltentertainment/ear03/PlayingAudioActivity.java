@@ -30,8 +30,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.google.android.exoplayer2.Player;
-
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.PlayingViewPagerAdapter;
@@ -86,12 +84,26 @@ public class PlayingAudioActivity extends AppCompatActivity {
 
     private Handler handler = new Handler();
 
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver receiveChangeTrack = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i("Message", "Received");
             // TODO update view when receive Change Track mess
             updateViews();
+        }
+    };
+    private BroadcastReceiver receiveChangeStatus = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("Message", "Received");
+            if (player.checkPlayStatus()) playBtn.setImageResource(R.drawable.pause);
+            else playBtn.setImageResource(R.drawable.play);
+        }
+    };
+    private BroadcastReceiver receiveEmpty = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            finish();
         }
     };
 
@@ -126,7 +138,9 @@ public class PlayingAudioActivity extends AppCompatActivity {
 
         bindService(new Intent(getBaseContext(), PlayerService.class),
                 serviceConnection, Context.BIND_AUTO_CREATE);
-        registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
+        registerReceiver(receiveChangeTrack, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
+        registerReceiver(receiveChangeStatus, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
+        registerReceiver(receiveEmpty, new IntentFilter(AudioMediaPlayer.EMPTY));
     }
 
     @Override
@@ -134,7 +148,9 @@ public class PlayingAudioActivity extends AppCompatActivity {
         super.onDestroy();
         unbindService(serviceConnection);
         serviceBound = false;
-        unregisterReceiver(mMessageReceiver);
+        unregisterReceiver(receiveChangeTrack);
+        unregisterReceiver(receiveChangeStatus);
+        unregisterReceiver(receiveEmpty);
     }
 
     @Override
@@ -152,8 +168,14 @@ public class PlayingAudioActivity extends AppCompatActivity {
         featureBtn = menu.getItem(0);
         fullscreenMode = menu.getItem(1);
 
-        if (serviceBound) fullscreenMode.setVisible(true);
-        else fullscreenMode.setVisible(false);
+        if (serviceBound) {
+            featureBtn.setVisible(true);
+            fullscreenMode.setVisible(true);
+        }
+        else {
+            featureBtn.setVisible(false);
+            fullscreenMode.setVisible(false);
+        }
         return true;
     }
 
@@ -169,10 +191,12 @@ public class PlayingAudioActivity extends AppCompatActivity {
                     // TODO get checked list and remove of playing list, notifydataset then
                     if (!SongsRecyclerView.getChecking()) {
                         SongsRecyclerView.setChecking(true);
+                        featureBtn.setIcon(R.drawable.checked);
                     } else {
                         ArrayList<Audio> removeList = SongsRecyclerView.getSelectedList();
                         SongsRecyclerView.setChecking(false);
                         removeSongsFromPlaylingList(removeList);
+                        featureBtn.setIcon(R.drawable.custom);
                     }
                 }
                 else if (viewPager.getCurrentItem() == 1) {
@@ -208,7 +232,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
                         tab0.setImageResource(R.drawable.tab2_icon);
                         tab1.setImageResource(R.drawable.tab_icon);
 
-                        featureBtn.setIcon(R.drawable.scan);
+                        featureBtn.setIcon(R.drawable.custom);
                         break;
                     }
                     case 1: {
@@ -239,7 +263,6 @@ public class PlayingAudioActivity extends AppCompatActivity {
             getCroppedBitmap(playingList.get(currentTrack).getAlbum().getCover());
         }
 
-        featureBtn.setVisible(true);
         setSeekBar();
         setFullscreenMode();
     }
@@ -281,7 +304,11 @@ public class PlayingAudioActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                player.seekTo(seekBar.getProgress());
+                try {
+                    player.seekTo(seekBar.getProgress());
+                } catch (IllegalStateException e) {
+                    e.printStackTrace();
+                }
                 tracking = false;
             }
         });
@@ -290,9 +317,13 @@ public class PlayingAudioActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (!tracking) {
-                    long mCurrentPosition = player.getCurrentPosition();
-                    seekBar.setProgress((int) mCurrentPosition);
-                    current.setText(toMinAndSec(mCurrentPosition));
+                    try {
+                        long mCurrentPosition = player.getCurrentPosition();
+                        seekBar.setProgress((int) mCurrentPosition);
+                        current.setText(toMinAndSec(mCurrentPosition));
+                    } catch (IllegalStateException e) {
+                        e.printStackTrace();
+                    }
                 }
                 handler.postDelayed(this, 1000);
             }
@@ -382,7 +413,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
         sendBroadcast(previous);
     }
     public void setShuffle (View v) {
-        player.setShuffleMode(!player.getShuffleMode());
+        player.setShuffleMode(!player.getShuffleMode(), currentTrack);
         if (player.getShuffleMode()) {
             ((ImageButton) v).setImageResource(R.drawable.shuffle);
         } else {
@@ -392,17 +423,17 @@ public class PlayingAudioActivity extends AppCompatActivity {
     public void setRepeat (View v) {
         switch (player.getRepeatMode()) {
             case AudioMediaPlayer.REPEAT_ALL: {
-                player.setRepeatMode(Player.REPEAT_MODE_ONE);
+                player.setRepeatMode(AudioMediaPlayer.REPEAT_ONE);
                 ((ImageButton) v).setImageResource(R.drawable.replay);
                 break;
             }
             case AudioMediaPlayer.REPEAT_ONE: {
-                player.setRepeatMode(Player.REPEAT_MODE_OFF);
+                player.setRepeatMode(AudioMediaPlayer.REPEAT_OFF);
                 ((ImageButton) v).setImageResource(R.drawable.play_once);
                 break;
             }
             case AudioMediaPlayer.REPEAT_OFF: {
-                player.setRepeatMode(Player.REPEAT_MODE_ALL);
+                player.setRepeatMode(AudioMediaPlayer.REPEAT_ALL);
                 ((ImageButton) v).setImageResource(R.drawable.repeat);
                 break;
             }
@@ -410,8 +441,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
     }
 
     private void removeSongsFromPlaylingList(ArrayList<Audio> remove) {
-        playingList.removeAll(remove);
-        PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
+        //PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
 
         Intent broadcastIntent = new Intent(AudioMediaPlayer.ACTION_UPDATE_PLAYER);
         broadcastIntent.putExtra(AudioMediaPlayer.PLAYING_LIST, remove);

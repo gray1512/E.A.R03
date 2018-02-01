@@ -54,20 +54,21 @@ public class SongsRecyclerView extends RecyclerView {
                     public void onItemClick(View view, int position) {
                         if (!checking) {
                             if ((view.findViewById(R.id.audio_add_playing)).isPressed()) {
-                                MainActivity.addPlayingList(position);
+                                ((SongItemView) view).addPlayingList(MainActivity.player, position, MainActivity.audioList);
                                 return;
                             } else if (view.findViewById(R.id.audio_menu_button).isPressed()) {
-                                MainActivity.displayOptionsMenu(view.findViewById(R.id.audio_menu_button), position);
+                                ((SongItemView) view).displayOptionsMenu(position,
+                                        MainActivity.audioList, MainActivity.playlists);
                                 return;
                             }
                             playAudios(position);
                         } else {
                             Audio a = ((SongsViewAdapter) getAdapter()).getAudioList().get(position);
                             if (!selectedList.contains(a)) {
-                                ((ImageButton) view.findViewById(R.id.audio_menu_button)).setImageResource(R.drawable.play);
+                                ((ImageButton) view.findViewById(R.id.audio_menu_button)).setImageResource(R.drawable.checkbox);
                                 selectedList.add(a);
                             } else {
-                                ((ImageButton) view.findViewById(R.id.audio_menu_button)).setImageResource(R.drawable.menu_button);
+                                ((ImageButton) view.findViewById(R.id.audio_menu_button)).setImageResource(R.drawable.blank_checkbox);
                                 selectedList.remove(a);
                             }
                         }

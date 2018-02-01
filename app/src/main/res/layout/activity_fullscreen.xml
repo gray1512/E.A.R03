@@ -44,7 +44,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:text="Title"
-        android:textColor="@color/fullscreenColorText"
+        android:textColor="@color/colorText"
         android:textSize="18dp"
         app:layout_constraintBottom_toBottomOf="@+id/visualizerView"
         app:layout_constraintEnd_toEndOf="parent"
@@ -64,7 +64,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:text="Artist"
-        android:textColor="@color/fullscreenColorText"
+        android:textColor="@color/colorText"
         app:layout_constraintBottom_toBottomOf="@+id/visualizerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -82,7 +82,7 @@
         android:onClick="exit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/checked" />
+        app:srcCompat="@drawable/exit" />
 
     <ImageButton
         android:id="@+id/settings"
@@ -94,7 +94,7 @@
         android:onClick="settings"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@mipmap/ic_launcher" />
+        app:srcCompat="@drawable/menu_button" />
 
     <include
         android:id="@+id/fullscreen_settings_layout"

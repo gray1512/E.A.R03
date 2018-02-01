@@ -11,7 +11,7 @@
 
     <item
         android:id="@+id/fullscreen"
-        android:icon="@drawable/ic_info_black_24dp"
+        android:icon="@drawable/fullscreen"
         android:title="Fullscreen Mode"
         app:showAsAction="always"
         android:visible="false"/>

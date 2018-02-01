@@ -1,6 +1,7 @@
 package theboltentertainment.ear03.Classes;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.animation.DynamicAnimation;
 import android.support.animation.FlingAnimation;
 import android.support.v7.widget.RecyclerView;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 
 import theboltentertainment.ear03.MainActivity;
 import theboltentertainment.ear03.Objects.Playlist;
+import theboltentertainment.ear03.PlaylistActivity;
 import theboltentertainment.ear03.R;
 import theboltentertainment.ear03.Views.PlayButton;
 
@@ -64,6 +66,14 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                 MainActivity.flowPlaylist(position);
             }
         });
+        holder.cover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(c, PlaylistActivity.class);
+                i.putExtra(PlaylistActivity.PLAYLIST, MainActivity.playlists.get(position));
+                c.startActivity(i);
+            }
+        });
 
         holder.setIsRecyclable(false);
     }
@@ -84,6 +94,7 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
 
         int imgSize;
         final float playWidth;
+        float flingDis, velocity;
         float playHeight;
 
         PlayButton.ScaleWidthAnimator collapse;
@@ -103,6 +114,8 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
 
             imgSize = cover.getLayoutParams().width;
             playWidth = play.getLayoutParams().width;
+            flingDis = playWidth / 2;
+            velocity = flingDis * 4 / 1; // px per second
 
             play.setPivotX(playWidth / 2);
             shuffle.setPivotX(shuffle.getLayoutParams().width/2);
@@ -167,8 +180,8 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                         flow.setVisibility(View.VISIBLE);
 
                         floatFlow = new FlingAnimation(flow, DynamicAnimation.X)
-                                .setMinValue(flow.getX() - playWidth/2).setMaxValue(flow.getX())
-                                .setStartVelocity(-500f).setFriction(1.0f).addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+                                .setMinValue(flow.getX() - flingDis).setMaxValue(flow.getX())
+                                .setStartVelocity(-velocity).setFriction(1.0f).addEndListener(new DynamicAnimation.OnAnimationEndListener() {
                                     @Override
                                     public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
                                         cancel.setOnClickListener(new View.OnClickListener() {
@@ -180,8 +193,8 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                                     }
                                 });
                         floatShuffle = new FlingAnimation(shuffle, DynamicAnimation.X)
-                                .setMinValue(shuffle.getX()).setMaxValue(shuffle.getX() + playWidth/2)
-                                .setStartVelocity(500f).setFriction(1.0f).addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+                                .setMinValue(shuffle.getX()).setMaxValue(shuffle.getX() + flingDis)
+                                .setStartVelocity(velocity).setFriction(1.0f).addEndListener(new DynamicAnimation.OnAnimationEndListener() {
                                     @Override
                                     public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
                                         cancel.setOnClickListener(new View.OnClickListener() {
@@ -210,8 +223,8 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
         private void collapseAnimation() {
             cancel.setOnClickListener(null);
             floatFlow = new FlingAnimation(flow, DynamicAnimation.X)
-                    .setMinValue(flow.getX()).setMaxValue(flow.getX() + playWidth/2)
-                    .setStartVelocity(500f).setFriction(1.0f)
+                    .setMinValue(flow.getX()).setMaxValue(flow.getX() + flingDis)
+                    .setStartVelocity(velocity).setFriction(1.0f)
                     .addEndListener(new DynamicAnimation.OnAnimationEndListener() {
                         @Override
                         public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
@@ -219,8 +232,8 @@ public class PlaylistsViewAdapter extends RecyclerView.Adapter<PlaylistsViewAdap
                         }
                     });
             floatShuffle = new FlingAnimation(shuffle, DynamicAnimation.X)
-                    .setMinValue(shuffle.getX() - playWidth/2).setMaxValue(shuffle.getX())
-                    .setStartVelocity(-500f).setFriction(1.0f)
+                    .setMinValue(shuffle.getX() - flingDis).setMaxValue(shuffle.getX())
+                    .setStartVelocity(-velocity).setFriction(1.0f)
                     .addEndListener(new DynamicAnimation.OnAnimationEndListener() {
                         @Override
                         public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
