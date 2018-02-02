@@ -3,10 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fullscreen_settings"
-    android:layout_width="match_parent"
+    android:layout_width="250dp"
     android:layout_height="wrap_content"
-    android:background="#96000000"
-    >
+    android:background="#96000000">
 
     <ImageButton
         android:id="@+id/imageButton"
@@ -80,69 +79,102 @@
         app:layout_constraintTop_toBottomOf="@+id/default_button" />
 
     <EditText
-        android:id="@+id/color_name"
-        android:layout_width="0dp"
+        android:id="@+id/red_text"
+        android:layout_width="45dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:backgroundTint="@android:color/transparent"
-        android:hint="#"
+        android:text="255"
         android:inputType="number"
-        android:selectAllOnFocus="false"
-        android:singleLine="true"
+        android:maxLength="3"
         android:textAlignment="center"
-        android:textAllCaps="false"
+        android:textColor="@color/colorText"
         android:textSize="12dp"
-        app:layout_constraintBottom_toBottomOf="@id/fullscreen_colortext"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/fullscreen_colortext"
-        app:layout_constraintTop_toTopOf="@id/fullscreen_colortext" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fullscreen_colortext" />
 
     <SeekBar
         android:id="@+id/red_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:max="255"
         android:progress="255"
         android:progressTint="@color/red"
         android:thumbTint="@color/red"
+        app:layout_constraintBottom_toBottomOf="@id/red_text"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/red_text"
+        app:layout_constraintTop_toTopOf="@+id/red_text" />
+
+    <EditText
+        android:id="@+id/green_text"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="255"
+        android:inputType="number"
+        android:maxLength="3"
+        android:textAlignment="center"
+        android:textColor="@color/colorText"
+        android:textSize="12dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fullscreen_colortext" />
+        app:layout_constraintTop_toBottomOf="@id/red_text" />
 
     <SeekBar
         android:id="@+id/green_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:max="255"
         android:progress="255"
         android:progressTint="@color/green"
         android:thumbTint="@color/green"
+        app:layout_constraintBottom_toBottomOf="@id/green_text"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/green_text"
+        app:layout_constraintTop_toTopOf="@+id/green_text" />
+
+    <EditText
+        android:id="@+id/blue_text"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="255"
+        android:inputType="number"
+        android:maxLength="3"
+        android:textAlignment="center"
+        android:textColor="@color/colorText"
+        android:textSize="12dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/red_bar" />
+        app:layout_constraintTop_toBottomOf="@id/green_text" />
 
     <SeekBar
         android:id="@+id/blue_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:max="255"
         android:progress="255"
         android:progressTint="@color/blue"
         android:thumbTint="@color/blue"
+        app:layout_constraintBottom_toBottomOf="@id/blue_text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/green_bar" />
+        app:layout_constraintStart_toEndOf="@id/blue_text"
+        app:layout_constraintTop_toTopOf="@+id/blue_text" />
 
+    <EditText
+        android:id="@+id/alpha_text"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="255"
+        android:inputType="number"
+        android:maxLength="3"
+        android:textAlignment="center"
+        android:textColor="@color/colorText"
+        android:textSize="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/blue_text" />
     <SeekBar
         android:id="@+id/alpha_bar"
         android:layout_width="0dp"
@@ -155,8 +187,8 @@
         android:progress="255"
         android:progressTint="@color/colorTint"
         android:thumbTint="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/alpha_text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/blue_bar" />
+        app:layout_constraintStart_toEndOf="@id/alpha_text"
+        app:layout_constraintTop_toTopOf="@+id/alpha_text" />
 </android.support.constraint.ConstraintLayout>

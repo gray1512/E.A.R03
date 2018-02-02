@@ -277,10 +277,6 @@ public class PlayingAudioActivity extends AppCompatActivity {
         if (a.getAlbum() != null) getCroppedBitmap(a.getAlbum().getCover());
         else albumCover.setImageResource(R.drawable.ic_dashboard_black_24dp);
 
-        long dur = player.getDuration();
-        seekBar.setMax((int) dur);
-        duration.setText(toMinAndSec(dur));
-
         PlayingViewPagerAdapter.LyricFragment.notifyDataChange();
         PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
     }
@@ -318,6 +314,12 @@ public class PlayingAudioActivity extends AppCompatActivity {
             public void run() {
                 if (!tracking) {
                     try {
+                        int dur = playingList.get(currentTrack).getLengthInMilSecs();
+                        if (dur != seekBar.getMax()) {
+                            seekBar.setMax(dur);
+                            duration.setText(toMinAndSec(dur));
+                        }
+
                         long mCurrentPosition = player.getCurrentPosition();
                         seekBar.setProgress((int) mCurrentPosition);
                         current.setText(toMinAndSec(mCurrentPosition));

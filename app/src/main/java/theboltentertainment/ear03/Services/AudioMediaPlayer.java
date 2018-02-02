@@ -160,7 +160,7 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        start();
+        mp.start();
         sendNoti();
         setPlayStatus(PLAY);
     }

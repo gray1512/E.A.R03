@@ -77,6 +77,7 @@ public class LauncherActivity extends AppCompatActivity {
         statusFile      = (TextView) findViewById(R.id.status_file);
 
         db = new SQLDatabase(getBaseContext());
+        db.checkDatabaseColor();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(getBaseContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE)

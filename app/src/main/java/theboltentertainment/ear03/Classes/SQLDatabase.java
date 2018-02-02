@@ -16,8 +16,11 @@ import java.util.Comparator;
 import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Objects.Playlist;
+import theboltentertainment.ear03.R;
 
 public class SQLDatabase extends SQLiteOpenHelper {
+
+    private Context c;
 
     private static final String DATABASE_NAME = "AudioDBName.db";
 
@@ -33,8 +36,13 @@ public class SQLDatabase extends SQLiteOpenHelper {
     private static final String AUDIO_COLUMN_PLAYLIST    = "playlist";
     private static final String AUDIO_COLUMN_LYRIC       = "lyric";
 
+    private static final String COLOR_TABLE_NAME         = "ColorTable";
+    private static final String COLOR_COLUMN_ID          = "color_id";
+    private static final String COLOR_COLUMN_COLOR       = "color";
+
     public SQLDatabase(Context context) {
         super(context, DATABASE_NAME , null, 1);
+        c = context;
     }
 
     @Override
@@ -52,11 +60,17 @@ public class SQLDatabase extends SQLiteOpenHelper {
                                     AUDIO_COLUMN_LENGTH + " INTEGER," +
                                     AUDIO_COLUMN_PLAYLIST + " TEXT," +
                                     AUDIO_COLUMN_LYRIC + " TEXT)");
+
+        db.execSQL("CREATE TABLE " + COLOR_TABLE_NAME + "(" +
+                                    COLOR_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                                    COLOR_COLUMN_COLOR + " INTEGER)"
+        );
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + AUDIO_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + COLOR_TABLE_NAME);
         this.onCreate(db);
     }
 
@@ -85,40 +99,39 @@ public class SQLDatabase extends SQLiteOpenHelper {
 
         db.insert(AUDIO_TABLE_NAME, null, contentValues);
     }
-
-    /*boolean updateAudio(String data, String title, String album, String artist, String length, String playlist, String lyric) {
+    public void checkDatabaseColor() {
         SQLiteDatabase db = this.getReadableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(AUDIO_COLUMN_DATA, data);
-        contentValues.put(AUDIO_COLUMN_TITLE, title);
-        contentValues.put(AUDIO_COLUMN_ARTIST, artist);
-        contentValues.put(AUDIO_COLUMN_ALBUM, album);
-        contentValues.put(AUDIO_COLUMN_LENGTH, length);
+        Cursor res =  db.rawQuery( "SELECT * FROM " + COLOR_TABLE_NAME, null );
 
-        Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
-        res.moveToFirst();
-        int id = -1;
-        while(!res.isAfterLast()){
-            String path = res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA));
-            if (path != null && path.equals(data)) {
-                id = res.getInt(res.getColumnIndex(AUDIO_COLUMN_ID));
-                contentValues.put(AUDIO_COLUMN_ID, id);
-                if (res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)) != null) {
-                    playlist = res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)) + "," + playlist;
-                }
-            }
-            res.moveToNext();
+        if(res.getCount() <= 0){
+            insertColor();
         }
-        Log.e("update", "info" + id + data + title + album + artist +length + playlist);
-
-        contentValues.put(AUDIO_COLUMN_PLAYLIST, playlist);
-        contentValues.put(AUDIO_COLUMN_LYRIC, lyric);
         res.close();
+    }
+    public void insertColor() {
+        int color = c.getResources().getColor(R.color.colorText);
 
-        db = this.getWritableDatabase();
-        db.update(AUDIO_TABLE_NAME, contentValues, "id = ?", new String[] { String.valueOf(id) } );
-        return true;
-    }*/
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLOR_COLUMN_COLOR, color);
+        db.insert(COLOR_TABLE_NAME, null, contentValues);
+    }
+    public int getDatabaseColor() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "SELECT * FROM " + COLOR_TABLE_NAME, null );
+
+        res.moveToFirst();
+        int color = res.getInt(res.getColumnIndex(COLOR_COLUMN_COLOR));
+        res.close();
+        return color;
+    }
+    public void setDatabaseColor(int color) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLOR_COLUMN_COLOR, color);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.update(COLOR_TABLE_NAME, contentValues, "", null );
+    }
 
     boolean updateLyric(Audio a) {
         String path = a.getData();
@@ -360,115 +373,4 @@ public class SQLDatabase extends SQLiteOpenHelper {
         }
         res.close();
     }
-
-    /*public byte[] getAlbumCover(Audio a) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
-
-        res.moveToFirst();
-        while(!res.isAfterLast()){
-            if (res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA)).equals(a.getData())) {
-                return res.getBlob(res.getColumnIndex(AUDIO_COLUMN_ALBUMCOVER));
-            }
-            res.moveToNext();
-        }
-        res.close();
-        return null;
-    }*/
-
-    /*ArrayList<String> getAllPlaylist() {
-        ArrayList<String> array_list = new ArrayList<>();
-
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
-
-        res.moveToFirst();
-        while(!res.isAfterLast()){
-            String play_list = (res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)));
-            if (!array_list.contains(play_list) && play_list!= null) {
-                if(play_list.contains(",")) {
-                    String[] play_lists = play_list.split(",");
-                    for (String n : play_lists) {
-                        if (!array_list.contains(n)) {
-                            array_list.add(n);
-                        }
-                    }
-                } else {
-                    array_list.add(play_list);
-                }
-            }
-            res.moveToNext();
-        }
-        array_list.remove(null);
-        array_list.remove("");
-
-        res.close();
-        return array_list;
-    }
-
-    int getPlaylistSize(String playlist) {
-        int size = 0;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
-
-        res.moveToFirst();
-        while(!res.isAfterLast()){
-            if (res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA)) != null &&
-                    res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)) != null) {
-                String play_list = res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST));
-                if (playlist.equals(play_list)){
-                    size++;
-                } else if (play_list.contains(",")) {
-                    String[] play_lists = play_list.split(",");
-                    for (String n : play_lists) {
-                        if (playlist.equals(n)) {
-                            size++;
-                        }
-                    }
-                }
-            }
-            res.moveToNext();
-        }
-        res.close();
-        return size;
-    }
-
-    ArrayList<Audio> getPlaylistAudio (String playlist) {
-        ArrayList<Audio> audio_list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
-
-        res.moveToFirst();
-        while(!res.isAfterLast()){
-            if (res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA)) != null &&
-                    res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)) != null) {
-                String play_list = res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST));
-                if (playlist.equals(play_list)){
-                    audio_list.add(new Audio(res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA)),
-                                            res.getString(res.getColumnIndex(AUDIO_COLUMN_TITLE)),
-                                            res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUM)),
-                                            res.getString(res.getColumnIndex(AUDIO_COLUMN_ARTIST)),
-                                            res.getString(res.getColumnIndex(AUDIO_COLUMN_LENGTH)),
-                                            res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)),
-                                            res.getString(res.getColumnIndex(AUDIO_COLUMN_LYRIC))));
-                } else if (play_list.contains(",")) {
-                    String[] play_lists = play_list.split(",");
-                    for (String n : play_lists) {
-                        if (playlist.equals(n)) {
-                            audio_list.add(new Audio(res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA)),
-                                    res.getString(res.getColumnIndex(AUDIO_COLUMN_TITLE)),
-                                    res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUM)),
-                                    res.getString(res.getColumnIndex(AUDIO_COLUMN_ARTIST)),
-                                    res.getString(res.getColumnIndex(AUDIO_COLUMN_LENGTH)),
-                                    res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)),
-                                    res.getString(res.getColumnIndex(AUDIO_COLUMN_LYRIC))));
-                        }
-                    }
-                }
-            }
-            res.moveToNext();
-        }
-        res.close();
-        return audio_list;
-    }*/
 }

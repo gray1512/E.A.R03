@@ -24,6 +24,8 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -32,12 +34,14 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.AudioVisualizer;
+import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
@@ -60,11 +64,11 @@ public class FullscreenActivity extends AppCompatActivity {
     private View settingsLayout;
     private TextView background;
     private TextView colorText;
-    private EditText colorName;
     private SeekBar redBar;
     private SeekBar greenBar;
     private SeekBar blueBar;
     private SeekBar alphaBar;
+    private EditText redText, greenText, blueText, alphaText;
 
     public static VisualizerView mVisualizerView;
     private AudioVisualizer mVisualizer;
@@ -132,13 +136,22 @@ public class FullscreenActivity extends AppCompatActivity {
         settingsLayout = findViewById(R.id.fullscreen_settings_layout);
         background = (TextView) settingsLayout.findViewById(R.id.fullscreen_background);
         colorText = (TextView) settingsLayout.findViewById(R.id.fullscreen_colortext);
-        colorName = (EditText) settingsLayout.findViewById(R.id.color_name);
+
         redBar = (SeekBar) settingsLayout.findViewById(R.id.red_bar);
         greenBar = (SeekBar) settingsLayout.findViewById(R.id.green_bar);
         blueBar = (SeekBar) settingsLayout.findViewById(R.id.blue_bar);
         alphaBar = (SeekBar) settingsLayout.findViewById(R.id.alpha_bar);
+        redText = (EditText) settingsLayout.findViewById(R.id.red_text);
+        greenText = (EditText) settingsLayout.findViewById(R.id.green_text);
+        blueText = (EditText) settingsLayout.findViewById(R.id.blue_text);
+        alphaText = (EditText) settingsLayout.findViewById(R.id.alpha_text);
 
         mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
+
+        SQLDatabase db = new SQLDatabase(getBaseContext());
+        int color = db.getDatabaseColor();
+        db.close();
+        setupColor(color);
 
         bindPlayerService.start();
         registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
@@ -200,6 +213,13 @@ public class FullscreenActivity extends AppCompatActivity {
         mVisualizer.setEnabled(true);
     }
 
+    private void setupColor(int color) {
+        title.setTextColor(color);
+        artist.setTextColor(color);
+        background.setTextColor(color);
+        colorText.setTextColor(color);
+    }
+
     private synchronized void getCroppedBitmap(String data) {
         Bitmap bitmap;
         final Bitmap output;
@@ -252,29 +272,120 @@ public class FullscreenActivity extends AppCompatActivity {
         v.setVisibility(View.GONE);
         settingsLayout.setVisibility(View.VISIBLE);
 
-        int color = colorText.getCurrentTextColor();
+        int color = title.getCurrentTextColor();
         int r = Color.red(color);
         int g = Color.green(color);
         int b = Color.blue(color);
         int a = Color.alpha(color);
 
-        colorName.setText("#" + color);
-        redBar.setProgress(r);
-        greenBar.setProgress(g);
-        blueBar.setProgress(b);
-        alphaBar.setProgress(a);
+        redBar.setProgress(r); redText.setText(String.valueOf(r));
+        greenBar.setProgress(g); greenText.setText(String.valueOf(g));
+        blueBar.setProgress(b); blueText.setText(String.valueOf(b));
+        alphaBar.setProgress(a); alphaText.setText(String.valueOf(a));
 
         redBar.setOnSeekBarChangeListener(seekBarChangeListener);
         greenBar.setOnSeekBarChangeListener(seekBarChangeListener);
         blueBar.setOnSeekBarChangeListener(seekBarChangeListener);
         alphaBar.setOnSeekBarChangeListener(seekBarChangeListener);
+
+        redText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s != "") {
+                    int r = Integer.parseInt(s.toString());
+                    if (r <= 255) redBar.setProgress(r);
+                    else redText.setText(String.valueOf(255));
+                }
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        greenText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s != "") {
+                    int r = Integer.parseInt(s.toString());
+                    if (r <= 255) greenBar.setProgress(r);
+                    else greenText.setText(String.valueOf(255));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        blueText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s != "") {
+                    int r = Integer.parseInt(s.toString());
+                    if (r <= 255) blueBar.setProgress(r);
+                    else blueText.setText(String.valueOf(255));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        alphaText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s != "") {
+                    int r = Integer.parseInt(s.toString());
+                    if (r <= 255) alphaBar.setProgress(r);
+                    else alphaText.setText(String.valueOf(255));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
+
     private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             int color = Color.argb(alphaBar.getProgress(), redBar.getProgress(),
                     greenBar.getProgress(), blueBar.getProgress());
-            colorName.setText("#" + color);
+            int r = Color.red(color);
+            int g = Color.green(color);
+            int b = Color.blue(color);
+            int a = Color.alpha(color);
+
+            redText.setText(String.valueOf(r));
+            greenText.setText(String.valueOf(g));
+            blueText.setText(String.valueOf(b));
+            alphaText.setText(String.valueOf(a));
+            setupColor(color);
         }
 
         @Override
@@ -292,11 +403,10 @@ public class FullscreenActivity extends AppCompatActivity {
         int color = Color.argb(alphaBar.getProgress(), redBar.getProgress(),
                 greenBar.getProgress(), blueBar.getProgress());
 
-        title.setTextColor(color);
-        artist.setTextColor(color);
-        background.setTextColor(color);
-        colorText.setTextColor(color);
-        colorName.setTextColor(color);
+        SQLDatabase db = new SQLDatabase(getBaseContext());
+        db.setDatabaseColor(color);
+        db.close();
+        setupColor(color);
 
         settingsLayout.setVisibility(View.GONE);
         settings.setVisibility(View.VISIBLE);

@@ -173,13 +173,6 @@ public class VisualizerView extends View {
                     coorEnd[0], coorEnd[1]);
         }
 
-        /*for (int a = 0 ; a < displayFft.length; a += 2) {
-            coorPeak = displayFft[a+1];
-            coorEnd = (a == displayFft.length - 2) ? displayFft[0] : displayFft[a + 2];
-
-            curvePath.quadTo(coorPeak[0], coorPeak[1], coorEnd[0], coorEnd[1]);
-        }*/
-
         canvas.drawCircle(centerX, centerY, radius+1, paint);
         canvas.drawPath(curvePath, paint);
     }
