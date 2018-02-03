@@ -241,6 +241,21 @@ public class MainActivity extends AppCompatActivity {
         getPlaylistsData();
     }
 
+    private ArrayList<Playlist> checkPlaylists() {
+        ArrayList<Playlist> pList = new ArrayList<>();
+
+        for (Audio a : audioList) {
+            if (a.getPlaylists() != null) {
+                for (Playlist p : a.getPlaylists()) {
+                    if (!p.getName().equals("") && !pList.contains(p)) {
+                        pList.add(p);
+                    }
+                }
+            }
+        }
+        return pList;
+    }
+
     private void getAlbumsData() {
         for (Album al : albumList) {
             for (Audio a : audioList) {

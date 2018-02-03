@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -16,11 +18,15 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.MainViewPagerAdapter;
 import theboltentertainment.ear03.Classes.SQLDatabase;
+import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.MainActivity;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Objects.Playlist;
@@ -31,6 +37,8 @@ import theboltentertainment.ear03.Services.PlayerService;
 public class SongItemView extends ConstraintLayout {
 
     private Context c;
+
+    private SongsRecyclerView parent;
 
     private TextView title;
     private TextView artist;
@@ -61,6 +69,10 @@ public class SongItemView extends ConstraintLayout {
         this.btn1 = btn1;
     }
 
+    public void setParentView (SongsRecyclerView rv) {
+        this.parent = rv;
+    }
+
     public void displayOptionsMenu (final int pos, final ArrayList<Audio> audioList, final ArrayList<Playlist> playlists) {
         View v = btn1;
         try {
@@ -87,12 +99,80 @@ public class SongItemView extends ConstraintLayout {
                 @Override
                 public void onClick(View v) {
                     // delete
+                    deleteAudio(audioList, pos);
                     pw.dismiss();
                 }
             });
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void deleteAudio(final ArrayList<Audio> audioList, final int pos) {
+        final Audio a = audioList.get(pos);
+        final File f = new File(a.getData());
+
+        if(f.canWrite()) {
+            // TODO checkPlayingList(a);
+            audioList.remove(pos);
+            if (parent != null) {
+                parent.removeAllViews();
+                parent.getAdapter().notifyDataSetChanged();
+            }
+
+            SQLDatabase db = new SQLDatabase(c);
+            db.deleteAudio(a.getData());
+            db.close();
+
+            ArrayList<Audio> remove = new ArrayList<>();
+            remove.add(a);
+            Intent broadcastIntent = new Intent(AudioMediaPlayer.ACTION_UPDATE_PLAYER);
+            broadcastIntent.putExtra(AudioMediaPlayer.PLAYING_LIST, remove);
+            c.sendBroadcast(broadcastIntent);
+
+            Snackbar.make(parent, "Deleted!", Snackbar.LENGTH_INDEFINITE)
+                    .setDuration(5000)
+                    .setAction("Undo", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            audioList.add(pos, a);
+                            if (parent != null) {
+                                parent.removeAllViews();
+                                parent.getAdapter().notifyDataSetChanged();
+                            }
+
+                            SQLDatabase db = new SQLDatabase(c);
+                            db.insertData(a.getData(), a.getTitle(), a.getArtist(), a.getAlbum(), a.getLengthInMilSecs());
+                            for (Playlist p : a.getPlaylists()) {
+                                db.updatePlaylistsData(a, p);
+                            }
+                            db.close();
+
+                            Intent broadcastIntent = new Intent(AudioMediaPlayer.ACTION_UPDATE_PLAYER);
+                            broadcastIntent.putExtra(AudioMediaPlayer.NEW_TRACK, a);
+                            c.sendBroadcast(broadcastIntent);
+                            Toast.makeText(c, "Undo done!", Toast.LENGTH_SHORT).show();
+
+                        }
+                    })
+                    .setCallback(new Snackbar.Callback() {
+                        @Override
+                        public void onDismissed(Snackbar snackbar, int event) {
+                            switch(event) {
+                                case Snackbar.Callback.DISMISS_EVENT_TIMEOUT:
+                                    try {
+                                        f.getCanonicalFile().delete();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(c, "Error when deleting", Toast.LENGTH_SHORT).show();
+                                    }
+                                    break;
+                            }
+                        }
+                    }).show();
+        } else {
+            Toast.makeText(c, "Error when deleting", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -137,7 +217,6 @@ public class SongItemView extends ConstraintLayout {
                     SQLDatabase db = new SQLDatabase(c);
                     for (int i = 0; i < playlists.size(); i++) {
                         if (((CheckBox) list.getChildAt(i)).isChecked()) {
-                            // TODO check if playlist has song yet, if yes, display Toast mess
                             playlists.get(i).addSong(a);
                             db.updatePlaylistsData(a, playlists.get(i));
                         }

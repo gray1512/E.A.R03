@@ -45,6 +45,7 @@ import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
+import theboltentertainment.ear03.Views.ExitButton;
 import theboltentertainment.ear03.Views.VisualizerView;
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -59,6 +60,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private ImageView album;
     private TextView title;
     private TextView artist;
+    private ExitButton exitButton;
 
     private ImageButton settings;
     private View settingsLayout;
@@ -69,6 +71,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private SeekBar blueBar;
     private SeekBar alphaBar;
     private EditText redText, greenText, blueText, alphaText;
+    private ExitButton exitSettingsButton;
 
     public static VisualizerView mVisualizerView;
     private AudioVisualizer mVisualizer;
@@ -105,8 +108,6 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         }
     });
-
-    private Handler handler = new Handler();
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -148,9 +149,13 @@ public class FullscreenActivity extends AppCompatActivity {
 
         mVisualizerView = (VisualizerView) findViewById(R.id.visualizerView);
 
+        exitButton = (ExitButton) findViewById(R.id.fullscreen_exit);
+        exitSettingsButton = (ExitButton) findViewById(R.id.fullscreen_settings_exit);
+
         SQLDatabase db = new SQLDatabase(getBaseContext());
         int color = db.getDatabaseColor();
         db.close();
+
         setupColor(color);
 
         bindPlayerService.start();
@@ -218,6 +223,9 @@ public class FullscreenActivity extends AppCompatActivity {
         artist.setTextColor(color);
         background.setTextColor(color);
         colorText.setTextColor(color);
+
+        exitButton.init(color);
+        exitSettingsButton.init(color);
     }
 
     private synchronized void getCroppedBitmap(String data) {

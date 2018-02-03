@@ -135,6 +135,9 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
 
     public static class PlaylistFragment extends Fragment {
         Context c;
+
+        static TextView noti;
+        static RecyclerView recyclerView;
         static PlaylistsViewAdapter adapter;
 
         @Override
@@ -147,8 +150,8 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_playlist, container, false);
-            RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.playlists_view);
-            TextView noti = (TextView) v.findViewById(R.id.playlists_noti);
+            recyclerView = (RecyclerView) v.findViewById(R.id.playlists_view);
+            noti = (TextView) v.findViewById(R.id.playlists_noti);
 
             if (MainActivity.playlists != null && MainActivity.playlists.size() > 0) {
                 noti.setVisibility(View.GONE);
@@ -169,7 +172,16 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
         }
 
         public static void notifyDataSetChange() {
-            adapter.notifyDataSetChanged();
+            recyclerView.removeAllViews();
+            recyclerView.getAdapter().notifyDataSetChanged();
+
+            if (MainActivity.playlists.size() == 0) {
+                noti.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+            } else {
+                noti.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+            }
         }
 
         public static PlaylistFragment newInstance() {

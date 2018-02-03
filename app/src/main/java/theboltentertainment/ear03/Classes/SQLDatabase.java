@@ -181,7 +181,7 @@ public class SQLDatabase extends SQLiteOpenHelper {
         return true;
     }
 
-    /*Integer deleteAudio(String path) {
+    public void deleteAudio(String path) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
 
@@ -196,12 +196,12 @@ public class SQLDatabase extends SQLiteOpenHelper {
             res.moveToNext();
         }
         res.close();
-        return db.delete(AUDIO_TABLE_NAME,
+        db.delete(AUDIO_TABLE_NAME,
                 "id = ? ",
                 new String[] { Integer.toString(id) });
     }
 
-    void deletePlaylist (String playlist) {
+    public void deletePlaylist (Playlist playlist) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
 
@@ -209,19 +209,34 @@ public class SQLDatabase extends SQLiteOpenHelper {
 
         while(!res.isAfterLast()){
             if (res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)) != null
-                    && res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)).contains(playlist)) {
-                Log.e("delete P", "pass");
+                    && res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)).contains(playlist.getName())) {
                 ContentValues contentValues = new ContentValues();
-                int id = res.getInt(res.getColumnIndex(AUDIO_COLUMN_ID));
                 contentValues.put(AUDIO_COLUMN_DATA, res.getString(res.getColumnIndex(AUDIO_COLUMN_DATA)));
                 contentValues.put(AUDIO_COLUMN_TITLE, res.getString(res.getColumnIndex(AUDIO_COLUMN_TITLE)));
                 contentValues.put(AUDIO_COLUMN_ARTIST, res.getString(res.getColumnIndex(AUDIO_COLUMN_ARTIST)));
-                contentValues.put(AUDIO_COLUMN_ALBUM, res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUM)));
+                if (res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUM)) != null) {
+                    contentValues.put(AUDIO_COLUMN_ALBUM, res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUM)));
+                    contentValues.put(AUDIO_COLUMN_ALBUMARTIST, res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUMARTIST)));
+                    if (res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUMCOVER)) == null)
+                        contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+                    else
+                        contentValues.put((AUDIO_COLUMN_ALBUMCOVER), res.getString(res.getColumnIndex(AUDIO_COLUMN_ALBUMCOVER)));
+                } else {
+                    contentValues.putNull(AUDIO_COLUMN_ALBUM);
+                    contentValues.putNull(AUDIO_COLUMN_ALBUMARTIST);
+                    contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+                }
                 contentValues.put(AUDIO_COLUMN_LENGTH, res.getString(res.getColumnIndex(AUDIO_COLUMN_LENGTH)));
+                if (res.getString(res.getColumnIndex(AUDIO_COLUMN_LYRIC)) != null )
+                    contentValues.put(AUDIO_COLUMN_LYRIC, res.getString(res.getColumnIndex(AUDIO_COLUMN_LYRIC)));
+                else contentValues.putNull(AUDIO_COLUMN_LYRIC);
 
-                if (res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)).contains(",")) {
-                    Log.e("delete P", "pass" + res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)).replace("," + playlist, null));
-                    contentValues.put(AUDIO_COLUMN_PLAYLIST, res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)).replace("," + playlist, null));
+                int id = res.getInt(res.getColumnIndex(AUDIO_COLUMN_ID));
+
+                if (res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST)).contains("//")) {
+                    contentValues.put(AUDIO_COLUMN_PLAYLIST,
+                            res.getString(res.getColumnIndex(AUDIO_COLUMN_PLAYLIST))
+                                    .replace("//" + playlist.getName(), ""));
                 } else {
                     contentValues.putNull(AUDIO_COLUMN_PLAYLIST);
                 }
@@ -231,7 +246,7 @@ public class SQLDatabase extends SQLiteOpenHelper {
             res.moveToNext();
         }
         res.close();
-    }*/
+    }
 
     public ArrayList<Audio> getAllAudios() {
         ArrayList<Audio> audio_list = new ArrayList<>();

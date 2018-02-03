@@ -443,8 +443,6 @@ public class PlayingAudioActivity extends AppCompatActivity {
     }
 
     private void removeSongsFromPlaylingList(ArrayList<Audio> remove) {
-        //PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
-
         Intent broadcastIntent = new Intent(AudioMediaPlayer.ACTION_UPDATE_PLAYER);
         broadcastIntent.putExtra(AudioMediaPlayer.PLAYING_LIST, remove);
         sendBroadcast(broadcastIntent);

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.R;
 import theboltentertainment.ear03.Views.SongItemView;
+import theboltentertainment.ear03.Views.SongsRecyclerView;
 
 
 public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.ViewHolder> {
@@ -20,6 +21,8 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
     private boolean noAddBtn = false;
     private boolean checkbox = false;
     private Context c;
+
+    private SongsRecyclerView rv;
 
     public ArrayList<Audio> getAudioList() {
         return audioList;
@@ -54,6 +57,12 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
     }
 
     @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.rv = (SongsRecyclerView) recyclerView;
+    }
+
+    @Override
     public SongsViewAdapter.ViewHolder onCreateViewHolder(final ViewGroup parent, int viewT) {
         // Inflate the view for this view holder
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_audio, parent, false);
@@ -72,6 +81,8 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
         if (noAddBtn) viewHolder.add.setVisibility(View.GONE);
         if (checkbox) viewHolder.menu.setImageResource(R.drawable.blank_checkbox);
         else viewHolder.menu.setImageResource(R.drawable.menu_button);
+
+        viewHolder.view.setParentView(rv);
 
         viewHolder.setIsRecyclable(false);
     }

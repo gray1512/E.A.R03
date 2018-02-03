@@ -7,8 +7,11 @@
     android:layout_marginLeft="5dp"
     android:layout_marginRight="5dp"
     android:layout_marginTop="8dp"
-    android:background="@drawable/border_audio"
-    android:padding="5dp">
+    android:background="@drawable/border_playlist"
+    android:paddingBottom="8dp"
+    android:paddingEnd="5dp"
+    android:paddingStart="5dp"
+    android:paddingTop="8dp">
 
     <ImageView
         android:id="@+id/playlist_cover"
@@ -40,7 +43,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
-        android:background="@drawable/border_playlist"
+        android:background="@drawable/border_playlist_list"
         android:padding="2dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/playlist_cover"

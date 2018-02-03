@@ -57,7 +57,7 @@
 
     <ImageButton
         android:id="@+id/audio_add_playing"
-        android:layout_width="36dp"
+        android:layout_width="40dp"
         android:layout_height="0dp"
         android:background="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -67,7 +67,7 @@
 
     <ImageButton
         android:id="@+id/audio_menu_button"
-        android:layout_width="36dp"
+        android:layout_width="40dp"
         android:layout_height="0dp"
         android:background="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
