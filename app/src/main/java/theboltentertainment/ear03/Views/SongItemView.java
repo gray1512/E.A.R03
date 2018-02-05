@@ -28,6 +28,7 @@ import theboltentertainment.ear03.Classes.MainViewPagerAdapter;
 import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Classes.SongsViewAdapter;
 import theboltentertainment.ear03.MainActivity;
+import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Objects.Playlist;
 import theboltentertainment.ear03.R;
@@ -46,6 +47,8 @@ public class SongItemView extends ConstraintLayout {
     // btn0 can be gone, btn1 can be come a check box
     private ImageButton btn0;
     private ImageButton btn1;
+
+    private boolean canDelete = false;
 
     public SongItemView(Context context) {
         super(context);
@@ -67,6 +70,10 @@ public class SongItemView extends ConstraintLayout {
         this.artist = artist;
         this.btn0 = btn0;
         this.btn1 = btn1;
+    }
+
+    public void allowDelete (boolean del) {
+        this.canDelete = del;
     }
 
     public void setParentView (SongsRecyclerView rv) {
@@ -104,6 +111,9 @@ public class SongItemView extends ConstraintLayout {
                 }
             });
 
+            if (canDelete) delete.setVisibility(VISIBLE);
+            else delete.setVisibility(GONE);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -116,6 +126,16 @@ public class SongItemView extends ConstraintLayout {
         if(f.canWrite()) {
             // TODO checkPlayingList(a);
             audioList.remove(pos);
+            if (a.getAlbum() != null) {
+                for (int i = 0; i < MainActivity.albumList.size(); i++) {
+                    Album album = MainActivity.albumList.get(i);
+                    if (album.getSongs().contains(a) && album.getSongs().size() > 1) {
+                        album.getSongs().remove(a);
+                    } else {
+                        MainActivity.albumList.remove(i);
+                    }
+                }
+            }
             if (parent != null) {
                 parent.removeAllViews();
                 parent.getAdapter().notifyDataSetChanged();
@@ -137,6 +157,14 @@ public class SongItemView extends ConstraintLayout {
                         @Override
                         public void onClick(View v) {
                             audioList.add(pos, a);
+
+                            if (a.getAlbum() != null) {
+                                if (MainActivity.albumList.contains(a.getAlbum())) {
+                                    MainActivity.albumList.get(MainActivity.albumList.indexOf(a.getAlbum())).addSong(a);
+                                } else {
+                                    MainActivity.albumList.add(a.getAlbum());
+                                }
+                            }
                             if (parent != null) {
                                 parent.removeAllViews();
                                 parent.getAdapter().notifyDataSetChanged();

@@ -101,7 +101,9 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver emptyPlayer = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (playingItem != null) playingItem.setVisible(false);
+            if (playingItem != null) {
+                playingItem.setVisible(false);
+            }
         }
     };
 
@@ -176,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unbindService(serviceConnection);
         unregisterReceiver(changeTrackAndStatus);
         unregisterReceiver(emptyPlayer);
     }
@@ -193,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main_actionbar, menu);
         playingItem = menu.getItem(0);
+        if (player != null && player.getPlayingList().size() > 0) playingItem.setVisible(true);
         return true;
     }
 
@@ -205,6 +209,12 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(AUDIOLIST, audioList);
                 intent.putExtra(ALBUMLIST, albumList);
                 intent.putExtra(PLAYLISTS, playlists);
+                startActivity(intent);
+                break;
+            }
+            case R.id.scan: {
+                Intent intent = new Intent(getBaseContext(), ScanActivity.class);
+                intent.putExtra(LauncherActivity.AUDIO_LIST, audioList);
                 startActivity(intent);
                 break;
             }
@@ -239,21 +249,6 @@ public class MainActivity extends AppCompatActivity {
 
         getAlbumsData();
         getPlaylistsData();
-    }
-
-    private ArrayList<Playlist> checkPlaylists() {
-        ArrayList<Playlist> pList = new ArrayList<>();
-
-        for (Audio a : audioList) {
-            if (a.getPlaylists() != null) {
-                for (Playlist p : a.getPlaylists()) {
-                    if (!p.getName().equals("") && !pList.contains(p)) {
-                        pList.add(p);
-                    }
-                }
-            }
-        }
-        return pList;
     }
 
     private void getAlbumsData() {

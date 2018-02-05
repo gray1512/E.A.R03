@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"
         android:text="Sorry no song to display... Click scan button to scan in every folder!"
         android:textAlignment="center"
+        android:textColor="@color/colorText"
         android:textSize="22sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -5,9 +5,8 @@ import android.support.annotation.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/**
- * Created by Admin on 27/03/2017.
- */
+import theboltentertainment.ear03.ScanActivity;
+
 
 public class Audio implements Serializable {
     private String data;
@@ -93,8 +92,11 @@ public class Audio implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        Audio a2 = (Audio) obj;
-        return this.getData().equals(a2.getData());
+        if (obj instanceof Audio) {
+            Audio a2 = (Audio) obj;
+            return this.getData().trim().equals(a2.getData().trim());
+        } else
+            return obj instanceof String && this.getData().trim().equals(((String) obj).trim());
     }
 
 

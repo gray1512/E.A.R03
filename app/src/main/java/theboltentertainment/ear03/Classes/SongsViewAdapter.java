@@ -20,6 +20,7 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
     private ArrayList<Audio> audioList;
     private boolean noAddBtn = false;
     private boolean checkbox = false;
+    private boolean allowDel = false;
     private Context c;
 
     private SongsRecyclerView rv;
@@ -81,6 +82,7 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
         if (noAddBtn) viewHolder.add.setVisibility(View.GONE);
         if (checkbox) viewHolder.menu.setImageResource(R.drawable.blank_checkbox);
         else viewHolder.menu.setImageResource(R.drawable.menu_button);
+        viewHolder.view.allowDelete(allowDel);
 
         viewHolder.view.setParentView(rv);
 
@@ -94,5 +96,10 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.View
 
     public void setCheckbox(boolean check) {
         this.checkbox = check;
+    }
+
+
+    public void allowDeleteItem (boolean del) {
+        this.allowDel = del;
     }
 }

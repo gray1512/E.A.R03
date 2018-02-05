@@ -11,6 +11,12 @@
         compat:actionViewClass="android.widget.ImageView" />
 
     <item
+        android:id="@+id/scan"
+        android:icon="@drawable/scan"
+        android:title="Scan"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/search"
         android:icon="@drawable/search"
         android:title="Search"

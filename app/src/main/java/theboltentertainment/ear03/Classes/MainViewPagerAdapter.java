@@ -63,12 +63,13 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
             View v = inflater.inflate(R.layout.fragment_songs, container, false);
 
             recyclerView = (SongsRecyclerView) v.findViewById(R.id.songs_view);
-            TextView noti = (TextView) v.findViewById(R.id.songs_noti);
+            final TextView noti = (TextView) v.findViewById(R.id.songs_noti);
 
             if (MainActivity.audioList.size() > 0) {
                 noti.setVisibility(View.GONE);
                 adapter = new SongsViewAdapter(MainActivity.audioList);
                 adapter.setHasStableIds(true);
+                adapter.allowDeleteItem(true);
 
                 recyclerView.init(false);
                 recyclerView.setAdapter(adapter);
@@ -76,6 +77,20 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
                 recyclerView.setVisibility(View.INVISIBLE);
                 noti.setVisibility(View.VISIBLE);
             }
+            adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                @Override
+                public void onChanged() {
+                    super.onChanged();
+                    if (MainActivity.audioList.size() == 0) {
+                        recyclerView.setVisibility(View.INVISIBLE);
+                        noti.setVisibility(View.VISIBLE);
+                    } else {
+                        recyclerView.setVisibility(View.VISIBLE);
+                        noti.setVisibility(View.GONE);
+                    }
+                    AlbumFragment.adapter.notifyDataSetChanged();
+                }
+            });
             return v;
         }
 
@@ -91,7 +106,7 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
 
     public static class AlbumFragment extends Fragment {
         private Context c;
-        private AlbumsViewAdapter adapter;
+        private static AlbumsViewAdapter adapter;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -103,8 +118,8 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_album, container, false);
-            RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.albums_view);
-            TextView noti = (TextView) v.findViewById(R.id.album_noti);
+            final RecyclerView recyclerView = (RecyclerView) v.findViewById(R.id.albums_view);
+            final TextView noti = (TextView) v.findViewById(R.id.album_noti);
 
             if (MainActivity.albumList.size() > 0) {
                 noti.setVisibility(View.GONE);
@@ -124,6 +139,20 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
                 noti.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.INVISIBLE);
             }
+
+            adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                @Override
+                public void onChanged() {
+                    super.onChanged();
+                    if (MainActivity.albumList.size() == 0) {
+                        recyclerView.setVisibility(View.INVISIBLE);
+                        noti.setVisibility(View.VISIBLE);
+                    } else {
+                        recyclerView.setVisibility(View.VISIBLE);
+                        noti.setVisibility(View.GONE);
+                    }
+                }
+            });
 
             return v;
         }

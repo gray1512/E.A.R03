@@ -42,10 +42,6 @@ public class Album implements Serializable {
         this.songs.add(song);
     }
 
-    /*public Bitmap getCover() {
-        return cover;
-    }*/
-
     public String getCover() {
         return cover;
     }
@@ -56,34 +52,17 @@ public class Album implements Serializable {
     }
 
     public Album(String name, String artist) {
-        this.name = name;
-        this.artist = artist;
+        this.name = (name != null) ? name : "";
+        this.artist = (artist != null) ? artist : "";
         this.songs = new ArrayList<>();
     }
 
-    /*public Bitmap getCover(int size) {
-        Bitmap bitmap;
-        if (bytecover != null) {
-            bitmap = BitmapFactory.decodeByteArray(bytecover, 0, bytecover.length);
-            //Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-            Bitmap output = Bitmap.createScaledBitmap(bitmap, size, size, false);
-            Canvas canvas = new Canvas(output);
-
-            final int color = 0xff424242;
-            final Paint paint = new Paint();
-            final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-
-            paint.setAntiAlias(true);
-            canvas.drawARGB(0, 0, 0, 0);
-            paint.setColor(color);
-
-            canvas.drawCircle(bitmap.getWidth()/2, bitmap.getHeight()/2,
-                    bitmap.getWidth()/2, paint);
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-            canvas.drawBitmap(bitmap, rect, rect, paint);
-
-            return output;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof Album) {
+            return (this.getName().trim().equals(((Album) obj).getName().trim()) &&
+                    this.getArtist().trim().equals(((Album) obj).getArtist().trim()));
         }
-        return null;
-    }*/
+        return false;
+    }
 }

@@ -213,6 +213,9 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if (currentTrack >= playingList.size()) {
+                    return;
+                }
                 Audio current = playingList.get(currentTrack);
                 if (remove_list.contains(current)) {
                     pauseMedia();

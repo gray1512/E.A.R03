@@ -24,6 +24,7 @@ import theboltentertainment.ear03.Services.PlayerService;
 public class SongsRecyclerView extends RecyclerView {
     Context c;
     static boolean checking = false;
+
     static SongsViewAdapter adapter;
 
     static ArrayList<Audio> selectedList;
@@ -94,7 +95,6 @@ public class SongsRecyclerView extends RecyclerView {
         adapter.setCheckbox(check);
         adapter.notifyDataSetChanged();
     }
-
     public static boolean getChecking() {
         return checking;
     }

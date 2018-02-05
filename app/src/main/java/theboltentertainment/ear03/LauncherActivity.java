@@ -42,8 +42,8 @@ public class LauncherActivity extends AppCompatActivity {
     private SQLDatabase db;
     private MediaMetadataRetriever mmr;
 
-    private final String MUSIC_DIRECTORY = Environment.getExternalStorageDirectory().toString();
-    private final String ALBUM_DIRECTORY = Environment.getExternalStorageDirectory().toString() + "/E.A.R/Album";
+    public static final String MUSIC_DIRECTORY = Environment.getExternalStorageDirectory().toString();
+    public static final String ALBUM_DIRECTORY = Environment.getExternalStorageDirectory().toString() + "/E.A.R/Album";
 
     public static final String AUDIO_LIST = "Audio List";
 
@@ -146,13 +146,13 @@ public class LauncherActivity extends AppCompatActivity {
                         percentageScan.setText(percent +"%");
                         progressScan.setProgress(percent);
                         statusScan.setText("Scan files for the first time... This will take a while...");
-                        statusFile.setText(fileList[finalI].getPath());
+                        statusFile.setText(fileList[finalI].getAbsolutePath());
                     }
                 }
             });
             if (fileList[i].isDirectory()) {
                 mp3File.addAll(scanFile(fileList[i].getAbsolutePath()));
-            } else if (fileList[i].getPath().endsWith(".mp3")){
+            } else if (fileList[i].getAbsolutePath().endsWith(".mp3")){
                 mp3File.add(fileList[i].getAbsolutePath());
             }
         }
