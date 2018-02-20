@@ -53,6 +53,7 @@ public class AlbumActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity.shufflePlaylist(album.getSongs());
             }
         });
     }

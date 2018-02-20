@@ -347,6 +347,11 @@ public class SQLDatabase extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Add new audio in an exist playlist
+     * @param a new audio from list activity
+     * @param playlist exist playlist
+     */
     public void updatePlaylistsData(Audio a, Playlist playlist) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res =  db.rawQuery( "SELECT * FROM " + AUDIO_TABLE_NAME, null );
@@ -387,5 +392,37 @@ public class SQLDatabase extends SQLiteOpenHelper {
             res.moveToNext();
         }
         res.close();
+    }
+
+    public void updatePlaylistName(Playlist playlist, String newName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<Audio> audioList = playlist.getSongs();
+
+        for (Audio a : audioList) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(AUDIO_COLUMN_DATA, a.getData());
+            contentValues.put(AUDIO_COLUMN_TITLE, a.getTitle());
+            contentValues.put(AUDIO_COLUMN_ARTIST, a.getArtist());
+            if (a.getAlbum() != null) {
+                contentValues.put(AUDIO_COLUMN_ALBUM, a.getAlbum().getName());
+                contentValues.put(AUDIO_COLUMN_ALBUMARTIST, a.getAlbum().getArtist());
+                if (a.getAlbum().getCover() == null) contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+                else contentValues.put((AUDIO_COLUMN_ALBUMCOVER), a.getAlbum().getCover());
+            } else {
+                contentValues.putNull(AUDIO_COLUMN_ALBUM);
+                contentValues.putNull(AUDIO_COLUMN_ALBUMARTIST);
+                contentValues.putNull(AUDIO_COLUMN_ALBUMCOVER);
+            }
+            contentValues.put(AUDIO_COLUMN_LENGTH, a.getLength());
+
+            String encrypPlaylist = a.getStringPlaylist().replace(playlist.getName(), newName);
+            contentValues.put(AUDIO_COLUMN_PLAYLIST, encrypPlaylist);
+
+            if (a.getLyric() != null ) contentValues.put(AUDIO_COLUMN_LYRIC, a.getLyric());
+            else contentValues.putNull(AUDIO_COLUMN_LYRIC);
+
+            db.update(AUDIO_TABLE_NAME, contentValues, AUDIO_COLUMN_DATA + " = ?",
+                    new String[] { a.getData() } );
+        }
     }
 }

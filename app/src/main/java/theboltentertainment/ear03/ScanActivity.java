@@ -78,9 +78,6 @@ public class ScanActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(getBaseContext(), "Scan done!", Toast.LENGTH_LONG).show();
-                        for (Audio a : newAudios) {
-                            Log.e("Arr", a.getTitle());
-                        }
                     }
                 });
 
@@ -111,33 +108,42 @@ public class ScanActivity extends AppCompatActivity {
         }
     }
 
-    private ArrayList<Audio> initScanProcess (String rootPath) {
+    private ArrayList<Audio> initScanProcess (final String rootPath) {
         ArrayList<Audio> mp3File = new ArrayList<>();
 
-        File file = new File(rootPath);
+        final File file = new File(rootPath);
         final File[] fileList = file.listFiles();
 
         int percent;
         for (int i = 0; i < fileList.length; i++) {
             percent = (int) (((float) (i+1)/fileList.length)*100);
             final int finalPercent = percent;
-            final int finalI = i;
             h.post(new Runnable() {
                 @Override
                 public void run() {
                     progressBar.setProgress(finalPercent);
-                    percentage.setText(percentage + "%");
-                    files.setText(fileList[finalI].getAbsolutePath());
+                    percentage.setText(finalPercent + "%");
+                    files.setText(rootPath);
                 }
             });
-
-            mp3File.addAll(scanFile(fileList[i].getAbsolutePath()));
+            if (fileList[i].isDirectory()) {
+                mp3File.addAll(scanFile(fileList[i].getAbsolutePath()));
+            } else if (fileList[i].getAbsolutePath().endsWith(".mp3")) {
+                mp3File.add(getMetaData(fileList[i].getAbsolutePath()));
+            }
         }
         return mp3File;
     }
 
-    private ArrayList<Audio> scanFile(String rootPath) {
+    private ArrayList<Audio> scanFile(final String rootPath) {
         ArrayList<Audio> mp3File = new ArrayList<>();
+
+        h.post(new Runnable() {
+            @Override
+            public void run() {
+                files.setText(rootPath);
+            }
+        });
 
         File file = new File(rootPath);
         final File[] fileList = file.listFiles();
@@ -145,7 +151,7 @@ public class ScanActivity extends AppCompatActivity {
         for (int i = 0; i < fileList.length; i++) {
             if (fileList[i].isDirectory()) {
                 mp3File.addAll(scanFile(fileList[i].getAbsolutePath()));
-            } else if (fileList[i].getAbsolutePath().endsWith(".mp3")){
+            } else if (fileList[i].getAbsolutePath().endsWith(".mp3")) {
                 mp3File.add(getMetaData(fileList[i].getAbsolutePath()));
             }
         }

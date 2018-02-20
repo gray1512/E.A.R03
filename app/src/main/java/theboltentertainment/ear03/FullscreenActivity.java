@@ -36,6 +36,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -46,6 +50,7 @@ import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Services.AudioMediaPlayer;
 import theboltentertainment.ear03.Services.PlayerService;
 import theboltentertainment.ear03.Views.ExitButton;
+import theboltentertainment.ear03.Views.MenuButton;
 import theboltentertainment.ear03.Views.VisualizerView;
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -62,7 +67,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private TextView artist;
     private ExitButton exitButton;
 
-    private ImageButton settings;
+    private MenuButton settings;
     private View settingsLayout;
     private TextView background;
     private TextView colorText;
@@ -120,6 +125,7 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     };
 
+    private InterstitialAd mInterstitialAd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +139,7 @@ public class FullscreenActivity extends AppCompatActivity {
         title = (TextView) findViewById(R.id.fullscreen_title);
         artist = (TextView) findViewById(R.id.fullscreen_artist);
 
-        settings = (ImageButton) findViewById(R.id.settings);
+        settings = (MenuButton) findViewById(R.id.settings);
         settingsLayout = findViewById(R.id.fullscreen_settings_layout);
         background = (TextView) settingsLayout.findViewById(R.id.fullscreen_background);
         colorText = (TextView) settingsLayout.findViewById(R.id.fullscreen_colortext);
@@ -160,6 +166,17 @@ public class FullscreenActivity extends AppCompatActivity {
 
         bindPlayerService.start();
         registerReceiver(mMessageReceiver, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getResources().getString(R.string.inter_ads_id));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                // Load the next interstitial.
+                mInterstitialAd.show();
+            }
+        });
     }
 
     @Override
@@ -226,6 +243,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         exitButton.init(color);
         exitSettingsButton.init(color);
+        settings.init(color);
     }
 
     private synchronized void getCroppedBitmap(String data) {
@@ -266,7 +284,7 @@ public class FullscreenActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    album.setImageResource(R.drawable.ic_info_black_24dp);
+                    album.setImageResource(R.drawable.empty_album);
                 }
             });
         }

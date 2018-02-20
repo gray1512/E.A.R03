@@ -25,6 +25,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.MobileAds;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
@@ -64,6 +66,13 @@ public class LauncherActivity extends AppCompatActivity {
         }
     };
 
+    private Thread initAds = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            MobileAds.initialize(getBaseContext(), getResources().getString(R.string.app_ads_id));
+        }
+    });
+
     private Handler handler = new Handler();
 
     @Override
@@ -96,6 +105,7 @@ public class LauncherActivity extends AppCompatActivity {
         } else {
             welcomeThread.start();
         }
+        initAds.start();
     }
 
     @Override

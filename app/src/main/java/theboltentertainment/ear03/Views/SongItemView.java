@@ -209,35 +209,39 @@ public class SongItemView extends ConstraintLayout {
         try {
             LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View layout = inflater.inflate(R.layout.playlists_dialog, null);
+            CheckBox checkBox = (CheckBox) inflater.inflate(R.layout.checkbox, null);
 
             final PopupWindow pw = new PopupWindow(layout, 450,
-                    400, true);
+                    ViewGroup.LayoutParams.WRAP_CONTENT, true);
             pw.setOutsideTouchable(true);
             pw.setFocusable(true);
             pw.setBackgroundDrawable(c.getResources().getDrawable(R.drawable.border_audio));
             pw.showAsDropDown(v, -300, 0);
 
             final LinearLayout list = (LinearLayout) layout.findViewById(R.id.dialog_list);
+            Button ok = (Button) layout.findViewById(R.id.dialog_ok);
+
             if (playlists.size() == 0) {
                 TextView empty = new TextView(c);
                 empty.setText("Create new playlist to add");
+                empty.setTextColor(getResources().getColor(R.color.colorText));
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 list.addView(empty, params);
+
+                ok.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        pw.dismiss();
+                    }
+                });
             } else {
                 for (int i = 0; i < playlists.size(); i++) {
-                    CheckBox checkBox = new CheckBox(c);
                     checkBox.setText(playlists.get(i).getName());
-                    checkBox.setMaxLines(1);
-                    checkBox.setEllipsize(TextUtils.TruncateAt.END);
-                    LinearLayout.LayoutParams checkParams = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                    checkParams.gravity = Gravity.CENTER;
-                    list.addView(checkBox, checkParams);
+                    list.addView(checkBox);
                 }
             }
 
-            Button ok = (Button) layout.findViewById(R.id.dialog_ok);
             ok.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -245,8 +249,10 @@ public class SongItemView extends ConstraintLayout {
                     SQLDatabase db = new SQLDatabase(c);
                     for (int i = 0; i < playlists.size(); i++) {
                         if (((CheckBox) list.getChildAt(i)).isChecked()) {
-                            playlists.get(i).addSong(a);
-                            db.updatePlaylistsData(a, playlists.get(i));
+                            if (!playlists.get(i).getSongs().contains(a)) {
+                                playlists.get(i).addSong(a);
+                                db.updatePlaylistsData(a, playlists.get(i));
+                            }
                         }
                     }
                     db.close();

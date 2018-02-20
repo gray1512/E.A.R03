@@ -1,0 +1,130 @@
+{
+  "project_info": {
+    "project_number": "987500382305",
+    "firebase_url": "https://ear02-62acd.firebaseio.com",
+    "project_id": "ear02-62acd",
+    "storage_bucket": "ear02-62acd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987500382305:android:a0e7c6f6d399e9de",
+        "android_client_info": {
+          "package_name": "theboltentertainment.ear"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "987500382305-aj3ioepooe29tupafj7msd26idm3d045.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "theboltentertainment.ear",
+            "certificate_hash": "8ffcbcc1b6056ae0f0f6c1576c18f9679255af0f"
+          }
+        },
+        {
+          "client_id": "987500382305-hojgoh7i2jc2jrjt9h4o1uv60is5aq35.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGlK_1bGHw5Uhone56PN6JZROcuixFuEs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "987500382305-hojgoh7i2jc2jrjt9h4o1uv60is5aq35.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987500382305:android:8708e6ae03467559",
+        "android_client_info": {
+          "package_name": "com.theboltentertainment.ear"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "987500382305-hojgoh7i2jc2jrjt9h4o1uv60is5aq35.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGlK_1bGHw5Uhone56PN6JZROcuixFuEs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987500382305:android:817ab5f789930cfa",
+        "android_client_info": {
+          "package_name": "theboltentertainment.ear03"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "987500382305-oe3umq7kfdgc65egtjiibitrfktjjiph.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "theboltentertainment.ear03",
+            "certificate_hash": "8ffcbcc1b6056ae0f0f6c1576c18f9679255af0f"
+          }
+        },
+        {
+          "client_id": "987500382305-hojgoh7i2jc2jrjt9h4o1uv60is5aq35.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGlK_1bGHw5Uhone56PN6JZROcuixFuEs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "987500382305-hojgoh7i2jc2jrjt9h4o1uv60is5aq35.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -205,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.search: {
                 Intent intent = new Intent(getBaseContext(), SongsFilterActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 intent.putExtra(ACTIVITY_FLAG, SEARCH_ACTIVITY);
                 intent.putExtra(AUDIOLIST, audioList);
                 intent.putExtra(ALBUMLIST, albumList);
@@ -215,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.scan: {
                 Intent intent = new Intent(getBaseContext(), ScanActivity.class);
                 intent.putExtra(LauncherActivity.AUDIO_LIST, audioList);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(intent);
                 break;
             }
@@ -271,6 +273,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public static void shufflePlaylist(ArrayList<Audio> playingList) {
+        int index = 0;
+        if (player == null) {
+            setupService(c, playingList, index);
+        } else {
+            player.play(playingList, index);
+            player.setShuffleMode(AudioMediaPlayer.SHUFFLE);
+        }
+    }
     public static void shufflePlaylist(int pos) {
         ArrayList<Audio> playingList = playlists.get(pos).getSongs();
         int index = 0;

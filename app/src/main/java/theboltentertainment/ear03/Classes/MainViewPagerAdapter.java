@@ -163,7 +163,7 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
     }
 
     public static class PlaylistFragment extends Fragment {
-        Context c;
+        static Context c;
 
         static TextView noti;
         static RecyclerView recyclerView;
@@ -202,7 +202,9 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
 
         public static void notifyDataSetChange() {
             recyclerView.removeAllViews();
-            recyclerView.getAdapter().notifyDataSetChanged();
+            adapter = new PlaylistsViewAdapter(c, MainActivity.playlists);
+            adapter.setHasStableIds(true);
+            recyclerView.setAdapter(adapter);
 
             if (MainActivity.playlists.size() == 0) {
                 noti.setVisibility(View.VISIBLE);

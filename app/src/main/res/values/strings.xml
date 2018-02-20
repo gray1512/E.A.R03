@@ -2,6 +2,9 @@
     <string name="app_name">E.A.R</string>
     <string name="title_activity_main">MainActivity</string>
 
+    <string name="app_ads_id">ca-app-pub-3980658803361406~8819523574</string>
+    <string name="inter_ads_id">ca-app-pub-3980658803361406/4049195979</string>
+
     <string name="title_songs">Songs</string>
     <string name="title_album">Album</string>
     <string name="title_playlist">Playlist</string>

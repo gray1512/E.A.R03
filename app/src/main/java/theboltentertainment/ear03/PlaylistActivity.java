@@ -1,5 +1,6 @@
 package theboltentertainment.ear03;
 
+import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -8,10 +9,15 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import java.io.File;
@@ -26,6 +32,8 @@ public class PlaylistActivity extends AppCompatActivity {
 
     public static final String PLAYLIST = "Playlist";
 
+    private Toolbar toolbar;
+
     private Playlist playlist;
 
     @Override
@@ -35,7 +43,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
         playlist = (Playlist) getIntent().getSerializableExtra(PLAYLIST);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(playlist.getName());
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -58,7 +66,7 @@ public class PlaylistActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                MainActivity.shufflePlaylist(playlist.getSongs());
             }
         });
     }
@@ -78,6 +86,11 @@ public class PlaylistActivity extends AppCompatActivity {
                 break;
             }
 
+            case R.id.action_edit: {
+                displayNewNameDialog();
+                break;
+            }
+
             case R.id.action_delete:{
                 MainActivity.playlists.remove(playlist);
                 SQLDatabase db = new SQLDatabase(getBaseContext());
@@ -91,5 +104,45 @@ public class PlaylistActivity extends AppCompatActivity {
             }
         }
         return true;
+    }
+
+    private void displayNewNameDialog() {
+        LayoutInflater inflater = (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.playlist_edit_dialog, null);
+
+        final PopupWindow pw = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        pw.setOutsideTouchable(true);
+        pw.setFocusable(true);
+        pw.setBackgroundDrawable(getResources().getDrawable(R.drawable.border_audio));
+        pw.showAtLocation(findViewById(R.id.playlist_recyclerview).getRootView(),
+                Gravity.CENTER, 0, 0);
+
+        Button cancel = (Button) layout.findViewById(R.id.dialog_cancel);
+        Button ok = (Button) layout.findViewById(R.id.dialog_ok);
+        final EditText newName = (EditText) layout.findViewById(R.id.dialog_new_name);
+        newName.setText(playlist.getName());
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pw.dismiss();
+            }
+        });
+
+        ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO set new name
+                String newS = newName.getText().toString();
+                playlist.setName(newS);
+                toolbar.setTitle(playlist.getName());
+
+                SQLDatabase db = new SQLDatabase(getBaseContext());
+                db.updatePlaylistName(playlist, newS);
+                db.close();
+            }
+        });
+
     }
 }

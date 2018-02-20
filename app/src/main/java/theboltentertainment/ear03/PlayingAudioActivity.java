@@ -30,6 +30,9 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+
 import java.util.ArrayList;
 
 import theboltentertainment.ear03.Classes.PlayingViewPagerAdapter;
@@ -45,7 +48,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
     private SeekBar seekBar;
     private TextView current;
     private TextView duration;
-    private boolean tracking = false;
+    private boolean tracking = false, updating = true;
 
     private ViewPager viewPager;
     private ImageView albumCover;
@@ -107,6 +110,8 @@ public class PlayingAudioActivity extends AppCompatActivity {
         }
     };
 
+    private InterstitialAd mInterstitialAd;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,6 +146,10 @@ public class PlayingAudioActivity extends AppCompatActivity {
         registerReceiver(receiveChangeTrack, new IntentFilter(AudioMediaPlayer.CHANGE_TRACK_DATA));
         registerReceiver(receiveChangeStatus, new IntentFilter(AudioMediaPlayer.CHANGE_PLAYING_STATUS));
         registerReceiver(receiveEmpty, new IntentFilter(AudioMediaPlayer.EMPTY));
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getResources().getString(R.string.inter_ads_id));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
     }
 
     @Override
@@ -151,6 +160,10 @@ public class PlayingAudioActivity extends AppCompatActivity {
         unregisterReceiver(receiveChangeTrack);
         unregisterReceiver(receiveChangeStatus);
         unregisterReceiver(receiveEmpty);
+
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        }
     }
 
     @Override
@@ -268,6 +281,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
     }
 
     private synchronized void updateViews() {
+        updating = true;
         playingList = player.getPlayingList();
         currentTrack = player.getCurrentTrack();
         Audio a = playingList.get(currentTrack);
@@ -275,19 +289,26 @@ public class PlayingAudioActivity extends AppCompatActivity {
         title.setText(a.getTitle());
         artist.setText(a.getArtist());
         if (a.getAlbum() != null) getCroppedBitmap(a.getAlbum().getCover());
-        else albumCover.setImageResource(R.drawable.ic_dashboard_black_24dp);
-
-        int dur = player.getDuration();
-        if (dur != seekBar.getMax()) {
-            seekBar.setMax(dur);
-            duration.setText(toMinAndSec(dur));
-        }
+        else albumCover.setImageResource(R.drawable.empty_album);
 
         PlayingViewPagerAdapter.LyricFragment.notifyDataChange();
         PlayingViewPagerAdapter.PlayingListFragment.notifyDataChange();
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                int dur = player.getDuration();
+                if (dur != seekBar.getMax()) {
+                    seekBar.setMax(dur);
+                    duration.setText(toMinAndSec(dur));
+                }
+                updating = false;
+            }
+        }, 1000);
     }
 
     private void setSeekBar() {
+        updating = true;
         long dura = player.getDuration();
         seekBar.setMax((int) dura);
         duration.setText(toMinAndSec(dura));
@@ -314,11 +335,12 @@ public class PlayingAudioActivity extends AppCompatActivity {
                 tracking = false;
             }
         });
+        updating = false;
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (!tracking) {
+                if (!tracking && !updating) {
                     try {
                         long mCurrentPosition = player.getCurrentPosition();
                         seekBar.setProgress((int) mCurrentPosition);
@@ -376,7 +398,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    albumCover.setImageResource(R.drawable.ic_dashboard_black_24dp);
+                    albumCover.setImageResource(R.drawable.empty_album);
                 }
             });
         }
