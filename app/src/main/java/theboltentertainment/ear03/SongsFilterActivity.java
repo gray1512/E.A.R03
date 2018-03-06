@@ -69,6 +69,7 @@ public class SongsFilterActivity extends AppCompatActivity {
             name.setVisibility(View.VISIBLE);
             checked.setVisibility(View.VISIBLE);
             adapter = new FilterViewAdapter(getBaseContext(), audioList, albumList, playlists, true);
+            adapter.setSelectedList(selectedList);
         }
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getBaseContext());

@@ -60,7 +60,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private ArrayList<Audio> playingList;
     private int currentTrack = 0;
 
-    private View activityView;
+    private ImageView activityView;
 
     private ImageView album;
     private TextView title;
@@ -79,7 +79,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private ExitButton exitSettingsButton;
 
     public static VisualizerView mVisualizerView;
-    private AudioVisualizer mVisualizer;
+    protected AudioVisualizer mVisualizer;
 
     private AudioMediaPlayer player;
     private PlayerService playerService;
@@ -133,7 +133,7 @@ public class FullscreenActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_fullscreen);
 
-        activityView = findViewById(R.id.fullscreen);
+        activityView = (ImageView) findViewById(R.id.fullscreen);
 
         album = (ImageView) findViewById(R.id.fullscreen_album);
         title = (TextView) findViewById(R.id.fullscreen_title);
@@ -205,7 +205,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 final InputStream imageStream = getContentResolver().openInputStream(imageUri);
                 final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                 BitmapDrawable bd = new BitmapDrawable(getResources(), selectedImage);
-                activityView.setBackgroundDrawable(bd);
+                activityView.setImageDrawable(bd);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -229,7 +229,7 @@ public class FullscreenActivity extends AppCompatActivity {
         if (mVisualizer == null) setupVisualizer();
     }
 
-    private void setupVisualizer() {
+    protected void setupVisualizer() {
         mVisualizer = new AudioVisualizer(player.getAudioSessionId());
         mVisualizer.init();
         mVisualizer.setEnabled(true);
@@ -439,7 +439,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void setDefaultBackground(View v) {
-        activityView.setBackgroundResource(R.drawable.fullscreen_img);
+        activityView.setImageResource(R.drawable.fullscreen_img);
     }
 
     public void chooseBackground (View v) {

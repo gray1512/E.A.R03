@@ -20,6 +20,7 @@ import theboltentertainment.ear03.R;
 
 public class FilterViewAdapter extends RecyclerView.Adapter<FilterViewAdapter.ViewHolder> implements Filterable {
     private ArrayList<Audio>    audioList;
+    private ArrayList<Audio>    selectedList;
     private ArrayList<Album>    albumList;
     private ArrayList<Playlist> playlists;
     private Context c;
@@ -40,6 +41,10 @@ public class FilterViewAdapter extends RecyclerView.Adapter<FilterViewAdapter.Vi
         this.albumList = (albumList != null) ? albumList : new ArrayList<Album>();
         this.playlists = (playlists != null) ? playlists : new ArrayList<Playlist>();
         this.checkbox = checkbox;
+    }
+
+    public void setSelectedList(ArrayList<Audio> selectedList) {
+        this.selectedList = selectedList;
     }
 
     @Override
@@ -69,7 +74,12 @@ public class FilterViewAdapter extends RecyclerView.Adapter<FilterViewAdapter.Vi
             viewHolder.info.setText(audioList.get(position).getArtist());
             if (checkbox) {
                 viewHolder.btn0.setVisibility(View.GONE);
-                viewHolder.btn1.setImageResource(R.drawable.blank_checkbox);
+                Audio a = audioList.get(position);
+                if (!selectedList.contains(a)) {
+                    viewHolder.btn1.setImageResource(R.drawable.blank_checkbox);
+                } else {
+                    viewHolder.btn1.setImageResource(R.drawable.checkbox);
+                }
             }
 
         } else if (position < audioList.size() + albumList.size()) {
