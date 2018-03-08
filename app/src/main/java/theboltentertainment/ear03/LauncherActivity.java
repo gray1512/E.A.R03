@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Random;
 
+import theboltentertainment.ear03.Classes.AudioScanner;
 import theboltentertainment.ear03.Objects.Album;
 import theboltentertainment.ear03.Objects.Audio;
 import theboltentertainment.ear03.Classes.SQLDatabase;
@@ -42,7 +43,7 @@ import theboltentertainment.ear03.Objects.Playlist;
 public class LauncherActivity extends AppCompatActivity {
     private final int MY_PERMISSIONS_REQUEST= 1002;
     private SQLDatabase db;
-    private MediaMetadataRetriever mmr;
+    private AudioScanner scanner;
 
     public static final String MUSIC_DIRECTORY = Environment.getExternalStorageDirectory().toString();
     public static final String ALBUM_DIRECTORY = Environment.getExternalStorageDirectory().toString() + "/E.A.R/Album";
@@ -106,6 +107,20 @@ public class LauncherActivity extends AppCompatActivity {
             welcomeThread.start();
         }
         initAds.start();
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (scanner != null && percentageScan != null && progressScan != null && statusScan != null) {
+                    int percent = (int) scanner.getPercent();
+                    percentageScan.setText(percent +"%");
+                    progressScan.setProgress(percent);
+                    statusScan.setText("Scan files for the first time... This will take a while...");
+                    statusFile.setText(scanner.getMessage());
+                }
+                handler.postDelayed(this, 1000);
+            }
+        });
     }
 
     @Override
@@ -136,134 +151,24 @@ public class LauncherActivity extends AppCompatActivity {
     @Override
     public  void onDestroy(){
         super.onDestroy();
-        if (mmr != null) mmr.release();
         db.close();
     }
 
-    private ArrayList<String> scanFile(String rootPath) {
-        ArrayList<String> mp3File = new ArrayList<>();
+    private void scanAudios() {
+        scanner = new AudioScanner(getBaseContext(), db);
+        scanner.scanDevice();
 
-        File file = new File(rootPath);
-        final File[] fileList = file.listFiles();
-
-        for (int i = 0; i < fileList.length; i++) {
-            final int percent = (int) (((float) (i+1)/fileList.length)*100);
-            final int finalI = i;
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (percentageScan != null && progressScan != null && statusScan != null) {
-                        percentageScan.setText(percent +"%");
-                        progressScan.setProgress(percent);
-                        statusScan.setText("Scan files for the first time... This will take a while...");
-                        statusFile.setText(fileList[finalI].getAbsolutePath());
-                    }
-                }
-            });
-            if (fileList[i].isDirectory()) {
-                mp3File.addAll(scanFile(fileList[i].getAbsolutePath()));
-            } else if (fileList[i].getAbsolutePath().endsWith(".mp3")){
-                mp3File.add(fileList[i].getAbsolutePath());
-            }
-        }
-
-        return mp3File;
-    }
-
-    private synchronized Audio getMetaData(String f) {
-        if (mmr == null) mmr = new MediaMetadataRetriever();
-        String title = null;
-        String artist = null;
-        String albumTitle;
-        int length = 0;
-        Album album = null;
-
-        try {
-            mmr.setDataSource(f);
-            title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-
-            length = Integer.parseInt(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-
-            albumTitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-            if (albumTitle != null && !albumTitle.equals("")) {
-                album = new Album(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM),
-                        mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST));
-                album.setCover(getCoverPath(albumTitle, mmr.getEmbeddedPicture()));
-            }
-
-        } catch (Exception e) {
-            Log.e("Error", e.toString());
-        }
-        if (title == null) {
-            title = new File(f).getName().replaceAll(".mp3", "");
-        }
-        if (artist == null || artist.equals("")) {
-            artist = "Various Artist";
-        }
-
-        db.insertData(f, title, artist, album, length);
-        return new Audio(f, title, artist, album,null, length);
-    }
-
-    private String getCoverPath(String name, byte[] bytes) {
-        Bitmap bitmap;
-        if (bytes != null) {
-            bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-            File file = new File (ALBUM_DIRECTORY, name +".jpg");
-            if (file.exists ()) file.delete ();
-            try {
-                FileOutputStream out = new FileOutputStream(file);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-                out.flush();
-                out.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return file.getAbsolutePath();
-        }
-        return null;
-    }
-
-    private void getAudioList(final ArrayList<String> fileList) {
-        Log.d("Progress", "Start get metadata");
-        new Thread(new Runnable() {
+        ArrayList<Audio> audio_list = scanner.getResults();
+        Collections.sort(audio_list, new Comparator<Audio>() {
             @Override
-            public void run() {
-                ArrayList<Audio> audio_list = new ArrayList<>();
-                for (int i = 0; i<fileList.size(); i++) {
-                    final int percent = (int) (((float)(i+1)/fileList.size())*100);
-                    final int finalI = i;
-                    final int finalI1 = i;
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (percentageScan != null && progressScan != null && statusScan != null) {
-                                percentageScan.setText(percent +"%");
-                                progressScan.setProgress(percent);
-                                statusScan.setText("Get audio data... Just few more minutes...");
-                                statusFile.setText(fileList.get(finalI1));
-                            }
-                        }
-                    });
+            public int compare(Audio a1, Audio a2) {
+                return a1.getTitle().trim().compareTo(a2.getTitle().trim());
+            }});
 
-                    Audio a = getMetaData(fileList.get(i));
-                    audio_list.add(a);
-                }
-
-                Collections.sort(audio_list, new Comparator<Audio>() {
-                    @Override
-                    public int compare(Audio a1, Audio a2) {
-                        return a1.getTitle().trim().compareTo(a2.getTitle().trim());
-                    }});
-
-                Log.d("Progress", "Database count: " + audio_list.size());
-                Intent i = new Intent(LauncherActivity.this, MainActivity.class);
-                i.putExtra(AUDIO_LIST, audio_list);
-                startActivity(i);
-            }
-        }).start();
-
+        Log.d("Progress", "Database count: " + audio_list.size());
+        Intent i = new Intent(LauncherActivity.this, MainActivity.class);
+        i.putExtra(AUDIO_LIST, audio_list);
+        startActivity(i);
     }
 
     private void sendExtra() {
@@ -287,7 +192,7 @@ public class LauncherActivity extends AppCompatActivity {
                         }
                     });
                     prepareAlbumDirectory();
-                    getAudioList(scanFile(MUSIC_DIRECTORY));
+                    scanAudios();
                 }
             }).start();
         } else {

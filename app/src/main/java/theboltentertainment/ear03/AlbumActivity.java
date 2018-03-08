@@ -36,7 +36,7 @@ public class AlbumActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         String cover = album.getCover();
-        if (new File(cover).exists()) {
+        if (cover != null && new File(cover).exists()) {
             BitmapDrawable coverDrawable = new BitmapDrawable(getResources(), cover);
             ImageView toolbarCover = ((ImageView) findViewById(R.id.toolbar_layout).findViewById(R.id.toolbar_cover));
             toolbarCover.setImageDrawable(coverDrawable);

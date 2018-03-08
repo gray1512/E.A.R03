@@ -70,27 +70,27 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
                 adapter = new SongsViewAdapter(MainActivity.audioList);
                 adapter.setHasStableIds(true);
                 adapter.allowDeleteItem(true);
-
+                adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                    @Override
+                    public void onChanged() {
+                        super.onChanged();
+                        if (MainActivity.audioList.size() == 0) {
+                            recyclerView.setVisibility(View.INVISIBLE);
+                            noti.setVisibility(View.VISIBLE);
+                        } else {
+                            recyclerView.setVisibility(View.VISIBLE);
+                            noti.setVisibility(View.GONE);
+                        }
+                        AlbumFragment.adapter.notifyDataSetChanged();
+                    }
+                });
                 recyclerView.init(false);
                 recyclerView.setAdapter(adapter);
             } else {
                 recyclerView.setVisibility(View.INVISIBLE);
                 noti.setVisibility(View.VISIBLE);
             }
-            adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-                @Override
-                public void onChanged() {
-                    super.onChanged();
-                    if (MainActivity.audioList.size() == 0) {
-                        recyclerView.setVisibility(View.INVISIBLE);
-                        noti.setVisibility(View.VISIBLE);
-                    } else {
-                        recyclerView.setVisibility(View.VISIBLE);
-                        noti.setVisibility(View.GONE);
-                    }
-                    AlbumFragment.adapter.notifyDataSetChanged();
-                }
-            });
+
             return v;
         }
 
@@ -134,25 +134,25 @@ public class MainViewPagerAdapter extends FragmentPagerAdapter {
 
                 adapter = new AlbumsViewAdapter(c, MainActivity.albumList);
                 adapter.setHasStableIds(true);
+
+                adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                    @Override
+                    public void onChanged() {
+                        super.onChanged();
+                        if (MainActivity.albumList.size() == 0) {
+                            recyclerView.setVisibility(View.INVISIBLE);
+                            noti.setVisibility(View.VISIBLE);
+                        } else {
+                            recyclerView.setVisibility(View.VISIBLE);
+                            noti.setVisibility(View.GONE);
+                        }
+                    }
+                });
                 recyclerView.setAdapter(adapter);
             } else {
                 noti.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.INVISIBLE);
             }
-
-            adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-                @Override
-                public void onChanged() {
-                    super.onChanged();
-                    if (MainActivity.albumList.size() == 0) {
-                        recyclerView.setVisibility(View.INVISIBLE);
-                        noti.setVisibility(View.VISIBLE);
-                    } else {
-                        recyclerView.setVisibility(View.VISIBLE);
-                        noti.setVisibility(View.GONE);
-                    }
-                }
-            });
 
             return v;
         }

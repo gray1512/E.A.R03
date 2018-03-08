@@ -19,6 +19,8 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import theboltentertainment.ear03.Classes.SQLDatabase;
 import theboltentertainment.ear03.Objects.Album;
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String CREATE_PLAYLIST_ACTIVITY = "Create new playlist";
 
     public static final int REQUEST_NEW_PLAYLIST = 1000;
+    public static final int REQUEST_NEW_AUDIOLIST = 1001;
 
     public static final String AUDIOLIST = "Audio List";
     public static final String ALBUMLIST = "Album List";
@@ -162,17 +165,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        SQLDatabase db = new SQLDatabase(getBaseContext());
+        audioList = db.getAllAudios();
+        db.close();
+
+        extractAlbumNPlaylist();
+        viewPager.setAdapter(new MainViewPagerAdapter(getSupportFragmentManager()));
+
         switch (requestCode) {
             case REQUEST_NEW_PLAYLIST:
-                    SQLDatabase db = new SQLDatabase(getBaseContext());
-                    audioList = db.getAllAudios();
-                    db.close();
+                viewPager.setCurrentItem(2);
+                break;
 
-                    extractAlbumNPlaylist();
-                    viewPager.setAdapter(new MainViewPagerAdapter(getSupportFragmentManager()));
-                    viewPager.setCurrentItem(2);
+            case REQUEST_NEW_AUDIOLIST:
+                viewPager.setCurrentItem(1);
                 break;
         }
+
     }
 
     @Override
@@ -217,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(getBaseContext(), ScanActivity.class);
                 intent.putExtra(LauncherActivity.AUDIO_LIST, audioList);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                startActivity(intent);
+                startActivityForResult(intent, REQUEST_NEW_AUDIOLIST);
                 break;
             }
 
@@ -273,6 +282,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Playlist fragment button control
+     */
     public static void shufflePlaylist(ArrayList<Audio> playingList) {
         int index = 0;
         if (player == null) {
@@ -311,6 +323,9 @@ public class MainActivity extends AppCompatActivity {
         c.bindService(playerIntent, MainActivity.serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    /**
+     * FAB new playlist button control
+     */
     public void createNewPlaylist(View v) {
         Intent intent = new Intent(getBaseContext(), SongsFilterActivity.class);
         intent.putExtra(ACTIVITY_FLAG, CREATE_PLAYLIST_ACTIVITY);
