@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(serviceConnection);
+        if (serviceBound) unbindService(serviceConnection);
         unregisterReceiver(changeTrackAndStatus);
         unregisterReceiver(emptyPlayer);
     }
