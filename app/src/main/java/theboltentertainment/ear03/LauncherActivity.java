@@ -165,10 +165,7 @@ public class LauncherActivity extends AppCompatActivity {
                 return a1.getTitle().trim().compareTo(a2.getTitle().trim());
             }});
 
-        Log.d("Progress", "Database count: " + audio_list.size());
-        Intent i = new Intent(LauncherActivity.this, MainActivity.class);
-        i.putExtra(AUDIO_LIST, audio_list);
-        startActivity(i);
+        startMainActivity(audio_list);
     }
 
     private void sendExtra() {
@@ -196,11 +193,15 @@ public class LauncherActivity extends AppCompatActivity {
                 }
             }).start();
         } else {
-            Log.d("Progress", "Database count: " + storageList.size());
-            Intent i = new Intent(LauncherActivity.this, MainActivity.class);
-            i.putExtra(AUDIO_LIST, storageList);
-            startActivity(i);
+            startMainActivity(storageList);
         }
+    }
+
+    private void startMainActivity(ArrayList<Audio> storageList) {
+        Log.d("Progress", "Database count: " + storageList.size());
+        Intent i = new Intent(LauncherActivity.this, MainActivity.class);
+        i.putExtra(AUDIO_LIST, storageList);
+        startActivity(i);
     }
 
     private void prepareAlbumDirectory() {

@@ -71,11 +71,16 @@ public class PlayingAudioActivity extends AppCompatActivity {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
             player = binder.getService().getAudioPlayer();
-            serviceBound = true;
+            if (player == null) {
+                finish();
+            } else {
+                serviceBound = true;
 
-            playingList = player.getPlayingList();
-            currentTrack = player.getCurrentTrack();
-            setupViews();
+                playingList = player.getPlayingList();
+                if (playingList == null || playingList.size() == 0) finish();
+                currentTrack = player.getCurrentTrack();
+                setupViews();
+            }
         }
 
         @Override
@@ -227,7 +232,7 @@ public class PlayingAudioActivity extends AppCompatActivity {
         return true;
     }
 
-    private void setupViews() {
+    void setupViews() {
         title.setText(playingList.get(currentTrack).getTitle());
         artist.setText(playingList.get(currentTrack).getArtist());
 

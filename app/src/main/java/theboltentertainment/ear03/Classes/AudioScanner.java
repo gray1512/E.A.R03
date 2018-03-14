@@ -231,7 +231,7 @@ public class AudioScanner {
             message = fileList[i].getAbsolutePath();
             if (fileList[i].isDirectory()) {
                 results.addAll(scanStorage(fileList[i].getAbsolutePath()));
-            } else if (fileList[i].getAbsolutePath().endsWith(".mp3")){
+            } else if (fileList[i].getAbsolutePath().endsWith(".mp3") || fileList[i].getAbsolutePath().endsWith(".flac")){
                 Audio a = getAudioData(fileList[i].getAbsolutePath());
                 if (a != null) results.add(a);
             }

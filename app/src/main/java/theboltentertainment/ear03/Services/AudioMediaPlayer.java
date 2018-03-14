@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -248,6 +249,7 @@ public class AudioMediaPlayer extends MediaPlayer implements MediaPlayer.OnCompl
             prepareAsync();
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(c, "Can't play this song", Toast.LENGTH_LONG).show();
         } catch (IllegalStateException e) {
             Intent i = new Intent(ACTION_RESET_PLAYER);
             i.putExtra(PLAYING_LIST, playingList);

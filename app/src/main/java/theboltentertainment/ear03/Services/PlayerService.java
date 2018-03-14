@@ -163,7 +163,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     }
 
     private boolean removeAudioFocus() {
-        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
+        return audioManager == null || AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
     }
 
     private void initMediaSession() throws RemoteException {

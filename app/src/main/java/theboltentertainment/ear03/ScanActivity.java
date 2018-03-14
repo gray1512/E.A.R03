@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,6 +59,7 @@ public class ScanActivity extends AppCompatActivity {
                     int percent = (int) scanner.getPercent();
                     progressBar.setProgress(percent);
                     percentage.setText(percent + "%");
+                    if (files.getVisibility() != View.VISIBLE) files.setVisibility(View.VISIBLE);
                     files.setText(scanner.getMessage());
                 }
                 h.postDelayed(this, 1000);
